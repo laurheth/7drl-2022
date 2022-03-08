@@ -10,6 +10,7 @@ class Thing {
     tile:Tile|null;
     map:GameMap;
     layer:number;
+    id:number;
 
     constructor(art:string, position:[number,number,number], map:GameMap) {
         this.art = art;
@@ -23,6 +24,8 @@ class Thing {
         } else {
             this.tile = null;
         }
+        this.id = map.getId();
+        this.map.things[this.id] = this;
     }
 
     /**
@@ -45,6 +48,10 @@ class Thing {
 
     getArt() {
         return this.art;
+    }
+
+    setId(id:number) {
+        this.id = id;
     }
 }
 

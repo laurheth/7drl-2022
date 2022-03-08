@@ -1,11 +1,19 @@
 import Entity from "./Entity";
 import GameMap from "./GameMap";
+import NetHandler from "./NetHandler";
 
 class Player extends Entity {
+
+    /**
+     * Networking handler.
+     */
+    net:NetHandler;
+
     constructor(position:[number,number,number], map:GameMap) {
         super('@', position, map);
         window.addEventListener("keydown", (event:KeyboardEvent) => this.handler(event));
         map.cameraPosition = position;
+        this.net = map.game.net;
     }
 
     handler(event:KeyboardEvent) {
@@ -36,6 +44,10 @@ class Player extends Entity {
         }
         if (doRefresh) {
             this.position.forEach((x,i) => this.map.cameraPosition[i] = x);
+            this.net.broadcast({
+                id: this.id,
+                position: this.position
+            })
             this.map.refresh();
         }
     }

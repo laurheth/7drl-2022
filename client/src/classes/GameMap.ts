@@ -1,7 +1,10 @@
 import Tile from "./Tile";
-import GameDisplay from "./GameDisplay";
 import { Random } from "roguelike-pumpkin-patch";
 import Player from "./Player";
+import Thing from "./Thing";
+import GameManager from "./GameManager";
+import { EntityDetails, default as NetHandler } from "./NetHandler";
+import Entity from "./Entity";
 
 /**
  * Class to carry around all of the important map data.
@@ -33,40 +36,69 @@ class GameMap {
     random:Random;
 
     /**
-     * Display to use to show this map.
+     * The main manager for the game
      */
-    display:GameDisplay;
+    game:GameManager
+
+    /**
+     * Next thing ID
+     */
+    nextThingId:number;
 
     /**
      * Center to display the view from.
      */
     cameraPosition:[number, number, number];
 
-    constructor(name:string, seed:number, hash:number, display:GameDisplay) {
+    /**
+     * Collection of things on the map
+     */
+    things:{[key:number]:Thing}
+
+    constructor(name:string, seed:number, hash:number, game:GameManager, entities:EntityDetails[]|null = null) {
+        this.game = game;
+
+        this.things = {};
+
         this.name = name;
 
         this.seed = Math.floor(seed);
-        
+
         // Random numbers wowow
         this.random = new Random(this.seed);
 
         // Generate map data
         this.mapData = {};
-        this.generateMap();
+        this.generateMap(entities === null);
+
+        if (entities) {
+            entities.forEach(entity => {
+                const position = entity.position;
+                let newThing = null;
+                if (entity.kind === "you") {
+                    newThing = new Player(position, this);
+                } else if (entity.kind === "player") {
+                    newThing = new Entity('@', position, this);
+                }
+                if (newThing) {
+                    newThing.setId(entity.id);
+                }
+            })
+        }
 
         // Add in a hash check, to make sure we didn't fuck up
         // Store the hash
         this.hashValue = hash;
 
-        this.display = display;
-
         this.cameraPosition = [0,0,0];
+
+        this.nextThingId = 0;
     }
 
     /**
      * Generate a map!
      */
-    generateMap() {
+    generateMap(generateThings:boolean = true) {
         const dimensions = 10;
         for (let i=-dimensions; i<=dimensions; i++) {
             for (let j=-dimensions; j<=dimensions; j++) {
@@ -77,7 +109,7 @@ class GameMap {
                     newTile = new Tile('.', true);
                 }
                 this.mapData[this.locationKey(i, j, 0)] = newTile;
-                if (i === 0 && j === 0) {
+                if (i === 0 && j === 0 && generateThings) {
                     new Player([i,j,0], this);
                 }
             }
@@ -109,7 +141,21 @@ class GameMap {
      * Refresh the view
      */
     refresh() {
-        this.display.draw(this, ...this.cameraPosition);
+        this.game.display.draw(this, ...this.cameraPosition);
+    }
+
+    /**
+     * Fetch an ID for a thing to use
+     */
+    getId() {
+        return this.nextThingId++;
+    }
+
+    /**
+     * Increment the thing ID
+     */
+    setThingId(id:number) {
+        this.nextThingId = id;
     }
 }
 
