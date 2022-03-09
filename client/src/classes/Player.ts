@@ -19,6 +19,7 @@ class Player extends Entity {
 
     handler(event:KeyboardEvent) {
         let doRefresh = false;
+        console.log("Keypress for " + this.id + " is " + event.key);
         switch (event.key) {
             case "ArrowRight":
             case "Right":

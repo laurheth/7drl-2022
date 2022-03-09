@@ -52,7 +52,7 @@ wss.on('connection', function connection(ws) {
     console.log(`Client connected`);
 
     let myGameId = -1;
-    let myEntityId = -1;
+    let myEntityId = 0;
 
     ws.on('close', () => {
         console.log(`Client disconnected`);
@@ -166,14 +166,14 @@ wss.on('connection', function connection(ws) {
                     // Update our local copy as well
                     const updates = message.updates;
                     updates.forEach(update => {
-                        if (update.id) {
+                        if (Number.isFinite(update.id)) {
                             const entity = game.entities[update.id];
                             if (entity) {
-                                if (message.message) {
+                                if (update.message) {
                                     entity.status = message.message;
                                 }
-                                if (message.position) {
-                                    entity.position = message.position;
+                                if (update.position) {
+                                    entity.position = update.position;
                                 }
                             }
                         }

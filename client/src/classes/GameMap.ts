@@ -83,6 +83,7 @@ class GameMap {
                     entity.kind = "player";
                 } else if (entity.kind === "player") {
                     newThing = new Entity('@', position, this);
+                    console.log(newThing.position, newThing.tile);
                 }
                 if (newThing) {
                     newThing.kind = entity.kind;

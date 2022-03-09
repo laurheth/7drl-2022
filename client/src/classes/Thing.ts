@@ -29,7 +29,9 @@ class Thing {
         }
         this.id = map.getId();
         console.log("Thing id " + this.id);
-        this.map.things[this.id] = this;
+        if (!this.map.things[this.id]) {
+            this.map.things[this.id] = this;
+        }
         this.kind = "thing";
     }
 
@@ -68,7 +70,11 @@ class Thing {
     }
 
     setId(id:number) {
+        if (this.map.things[this.id] === this) {
+            delete this.map.things[this.id];
+        }
         this.id = id;
+        this.map.things[id] = this;
     }
 }
 

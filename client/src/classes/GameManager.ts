@@ -105,6 +105,7 @@ class GameManager {
             updates.forEach(update => {
                 if (this.gameMap) {
                     let thing:Thing = this.gameMap.things[update.id];
+                    console.log(update.id, thing, this.gameMap.things);
                     if (update.position) {
                         thing.move(update.position);
                     }
@@ -112,6 +113,9 @@ class GameManager {
                         if (update.message === "disconnected") {
                             console.log("Friendo disconnected.");
                             thing.die();
+                            if (this.gameMap.things[thing.id] === thing) {
+                                delete this.gameMap.things[thing.id];
+                            }
                         }
                     }
                 }
@@ -132,6 +136,7 @@ class GameManager {
             } else {
                 newThing = new Thing('&', message.position, this.gameMap);
             }
+            this.gameMap.refresh();
         }
     }
 }
