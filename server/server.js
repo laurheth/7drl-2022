@@ -47,7 +47,7 @@ let gameId = 0;
 const games = {};
 
 // New connections
-wss.on('connection', (ws) => {
+wss.on('connection', function connection(ws) {
 
     console.log(`Client connected`);
 

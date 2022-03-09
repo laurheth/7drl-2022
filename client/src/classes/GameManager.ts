@@ -28,10 +28,10 @@ class GameManager {
     constructor() {
         this.display = new GameDisplay();
         this.net = new Net(this, ()=>this.onConnected());
-        this.net.addCallback("SessionDetails", (message?:GameMessage)=>this.onSessionDetails(message));
-        this.net.addCallback("GameList", (message?:GameMessage)=>this.onGameList(message));
-        this.net.addCallback("Updates", (message?:GameMessage)=>this.onUpdates(message));
-        this.net.addCallback("Spawn", (message?:GameMessage)=>this.onSpawn(message));
+        this.net.addCallback("SessionDetails", this.onSessionDetails.bind(this));
+        this.net.addCallback("GameList", this.onGameList.bind(this));
+        this.net.addCallback("Updates", this.onUpdates.bind(this));
+        this.net.addCallback("Spawn", this.onSpawn.bind(this));
     }
 
     /**
