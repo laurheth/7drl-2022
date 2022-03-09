@@ -31,6 +31,7 @@ class GameManager {
         this.net.addCallback("SessionDetails", (message?:GameMessage)=>this.onSessionDetails(message));
         this.net.addCallback("GameList", (message?:GameMessage)=>this.onGameList(message));
         this.net.addCallback("Updates", (message?:GameMessage)=>this.onUpdates(message));
+        this.net.addCallback("Spawn", (message?:GameMessage)=>this.onSpawn(message));
     }
 
     /**
@@ -127,7 +128,7 @@ class GameManager {
             let newThing:Thing;
             this.gameMap.setThingId(message.id);
             if (message.kind === "player") {
-                newThing = new Entity('&', message.position, this.gameMap);
+                newThing = new Entity('@', message.position, this.gameMap);
             } else {
                 newThing = new Thing('&', message.position, this.gameMap);
             }
