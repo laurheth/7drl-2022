@@ -1,32 +1,7 @@
 import GameManager from "./GameManager";
 import GameMap from "./GameMap";
 import Thing from "./Thing";
-
-/**
- * Definition of the messages that can be sent.
- */
-interface NetMessage {
-    id: number;
-    position?:[number, number, number];
-    message?:string;
-}
-
-/**
- * Information needed to connect to another game, or help others connect to us
- */
-export interface EntityDetails {
-    id: number;
-    kind: string;
-    position:[number, number, number];
-}
-
-interface SessionDetails {
-    name: string;
-    seed: number;
-    hash: number;
-    id: number;
-    entities: EntityDetails[];
-}
+import { ThingUpdateBundle, ThingUpdate, SessionDetails, GameRequest, GameMessage } from "../interfaces/NetInterfaces";
 
 /**
  * Class to handle the websocket communications
@@ -34,10 +9,15 @@ interface SessionDetails {
 class NetHandler {
     ws:WebSocket|undefined;
     game:GameManager;
-    receivedBuffer:NetMessage[];
-    constructor(game:GameManager) { 
+    receivedBuffer:ThingUpdate[];
+    callbacks:{[key:string]:Array<(message?:GameMessage)=>void>};
+    constructor(game:GameManager, connectedCallback?:()=>void, closedCallback?:()=>void) { 
         this.game = game;
         this.receivedBuffer = [];
+        this.callbacks = {};
+        if (connectedCallback) {
+            this.addCallback("open", connectedCallback);
+        }
         this.init();
     }
 
@@ -57,7 +37,9 @@ class NetHandler {
         });
         
         ws.addEventListener("open", function open() {
+            me.runCallbacks("open");
             ws.addEventListener("close", function close() {
+                me.runCallbacks("close");
                 ws.removeEventListener("close", close);
             })
         });
@@ -67,32 +49,39 @@ class NetHandler {
      * Handle messages from the server
      */
     onMessage(message:MessageEvent) {
-        const data = JSON.parse(message.data);
-        // Figure out what to do with it
-        if (Array.isArray(data)) {
-            // This is a set of updates. Apply them all in order.
-            const updates:NetMessage[] = data;
-            updates.forEach(update => {
-                if (this.game.gameMap) {
-                    const thing:Thing = this.game.gameMap.things[update.id];
-                } else {
-                    this.receivedBuffer.push(update);
-                }
-            });
-        } else if (data.name && data.id && data.seed) {
-            const sessionDetails:SessionDetails = data;
-            const { name, seed, hash, id, entities } = sessionDetails;
-            this.game.gameMap = new GameMap(name, seed, hash, this.game, entities);
-            this.game.gameMap.setThingId(id);
-        }
+        const data:GameMessage = JSON.parse(message.data);
+        console.log(data);
+        this.runCallbacks(data.requestType, data);
     }
 
     /**
      * Broadcast an update to the current game
      */
-    broadcast(...messages:NetMessage[]) {
+    broadcast(message:GameMessage) {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify(messages));
+            this.ws.send(JSON.stringify(message));
+        }
+    }
+
+    /**
+     * Add a callback
+     */
+    addCallback(requestType:string,callback:(message?:GameMessage)=>void) {
+        if (requestType in this.callbacks) {
+            this.callbacks[requestType].push(callback);
+        } else {
+            this.callbacks[requestType] = [callback];
+        }
+    }
+
+    /**
+     * Run the appropriate callbacks
+     */
+    runCallbacks(requestType:string,message?:GameMessage) {
+        if (this.callbacks[requestType]) {
+            this.callbacks[requestType].forEach(callback => {
+                callback(message);
+            })
         }
     }
 }

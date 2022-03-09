@@ -11,6 +11,9 @@ class Thing {
     map:GameMap;
     layer:number;
     id:number;
+    kind:string;
+
+    onDeath:(()=>void)|undefined;
 
     constructor(art:string, position:[number,number,number], map:GameMap) {
         this.art = art;
@@ -25,7 +28,9 @@ class Thing {
             this.tile = null;
         }
         this.id = map.getId();
+        console.log("Thing id " + this.id);
         this.map.things[this.id] = this;
+        this.kind = "thing";
     }
 
     /**
@@ -44,6 +49,18 @@ class Thing {
             }
         }
         return false;
+    }
+
+    /**
+     * Die
+     */
+    die() {
+        if (this.tile) {
+            this.tile.removeThing(this);
+            if (this.onDeath) {
+                this.onDeath();
+            }
+        }
     }
 
     getArt() {

@@ -3,8 +3,9 @@ import { Random } from "roguelike-pumpkin-patch";
 import Player from "./Player";
 import Thing from "./Thing";
 import GameManager from "./GameManager";
-import { EntityDetails, default as NetHandler } from "./NetHandler";
 import Entity from "./Entity";
+import NetHandler from "./NetHandler";
+import { EntityDetails } from "../interfaces/NetInterfaces";
 
 /**
  * Class to carry around all of the important map data.
@@ -60,6 +61,8 @@ class GameMap {
 
         this.things = {};
 
+        this.nextThingId = 0;
+
         this.name = name;
 
         this.seed = Math.floor(seed);
@@ -77,10 +80,12 @@ class GameMap {
                 let newThing = null;
                 if (entity.kind === "you") {
                     newThing = new Player(position, this);
+                    entity.kind = "player";
                 } else if (entity.kind === "player") {
                     newThing = new Entity('@', position, this);
                 }
                 if (newThing) {
+                    newThing.kind = entity.kind;
                     newThing.setId(entity.id);
                 }
             })
@@ -91,8 +96,6 @@ class GameMap {
         this.hashValue = hash;
 
         this.cameraPosition = [0,0,0];
-
-        this.nextThingId = 0;
     }
 
     /**
@@ -148,6 +151,7 @@ class GameMap {
      * Fetch an ID for a thing to use
      */
     getId() {
+        console.log(this.nextThingId);
         return this.nextThingId++;
     }
 
@@ -155,6 +159,7 @@ class GameMap {
      * Increment the thing ID
      */
     setThingId(id:number) {
+        console.log(this.nextThingId, id);
         this.nextThingId = id;
     }
 }

@@ -1,3 +1,4 @@
+import GameMap from "./GameMap";
 import Thing from "./Thing";
 import Tile from "./Tile";
 
@@ -5,6 +6,12 @@ import Tile from "./Tile";
  * Something that exists in the map and moves around.
  */
 class Entity extends Thing {
+
+    constructor(art:string, position:[number,number,number], map:GameMap) {
+        super(art, position, map);
+        this.kind = "entity";
+    }
+
     /**
      * Do a steppy.
      */
