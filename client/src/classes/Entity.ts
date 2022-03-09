@@ -16,6 +16,14 @@ class Entity extends Thing {
      * Do a steppy.
      */
     step(diff:[number, number, number]):boolean {
+
+        if (diff[2] < 0 && this.tile?.art !== '>') {
+            return false;
+        }
+        if (diff[2] > 0 && this.tile?.art !== '<') {
+            return false;
+        }
+
         const newPosition:[number, number, number] = [
             diff[0] + this.position[0],
             diff[1] + this.position[1],

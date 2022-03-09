@@ -100,27 +100,6 @@ class GameMap {
     }
 
     /**
-     * Generate a map!
-     */
-    generateMap(generateThings:boolean = true) {
-        const dimensions = 10;
-        for (let i=-dimensions; i<=dimensions; i++) {
-            for (let j=-dimensions; j<=dimensions; j++) {
-                let newTile:Tile;
-                if (Math.abs(i) === dimensions || Math.abs(j) === dimensions) {
-                    newTile = new Tile('#', false);
-                } else {
-                    newTile = new Tile('.', true);
-                }
-                this.mapData[this.locationKey(i, j, 0)] = newTile;
-                if (i === 0 && j === 0 && generateThings) {
-                    new Player([i,j,0], this);
-                }
-            }
-        }
-    }
-
-    /**
      * Parse a location into a key string
      */
     locationKey(x:number, y:number, z:number):string {
@@ -162,6 +141,172 @@ class GameMap {
     setThingId(id:number) {
         console.log(this.nextThingId, id);
         this.nextThingId = id;
+    }
+
+    // All the map generating methods below this point...
+    /**
+     * Generate a map!
+     */
+     generateMap(generateThings:boolean = true) {
+        for (let z=0; z<5; z++) {
+            this.coreArea(z, 4);
+            this.drawHallways(z, this.random.getNumber(3, 4, true), 250);
+        }
+        if (generateThings) {
+            new Player([0,0,0], this);
+        }
+    }
+
+    /**
+     * Central area with stairs, garbage chute, maybe an elevator shaft for the lols
+     */
+    coreArea(z:number, top:number) {
+        let design:string[];
+        if (z > 0) {
+            design = [
+                '    ####    ',
+                '   ##XX##   ',
+                '   #....#   ',
+                '   #....#   ',
+                '***##++##***',
+                '*..........*',
+                '*..........*',
+                '*..######..*',
+                '*..#XXXX#..*',
+                '*..#XXXX#..*',
+                '*..#XXXX#..*',
+                '*..#XXXX#..*',
+                '*..##++##..*',
+                '*..........*',
+                '*....><....*',
+                '************',
+            ];
+        } else {
+            design = [
+                '    ####    ',
+                '#####..#####',
+                '#..........#',
+                '#..........#',
+                '#..........#',
+                '#..........#',
+                '#..........#',
+                '#++######++#',
+                '*..#....#..*',
+                '*..#....#..*',
+                '*..#....#..*',
+                '*..#....#..*',
+                '*..##++##..*',
+                '*..........*',
+                '*....<.....*',
+                '************',
+            ];
+        }
+
+        const xOffset = Math.floor(design[0].length / 2);
+        const yOffset = Math.floor(design.length / 2);
+
+        design.forEach((row,y)=>{
+            row.split('').forEach((char,x)=>{
+                if (char === ' ') {
+                    return;
+                }
+                if (char === 'X') {
+                    char = ' ';
+                }
+                if (z > 0 && z % 2 === 0) {
+                    if (char === '>') {
+                        char = '<';
+                    } else if (char === '<') {
+                        char = '>';
+                    }
+                }
+                if (z >= top && char === '<') {
+                    char = '.';
+                }
+                let replaceable = false;
+                if (char === '*') {
+                    replaceable = true;
+                    char = '#';
+                }
+                const newTile:Tile = new Tile(char, char !== '#', replaceable);
+                this.mapData[this.locationKey(x - xOffset, y - yOffset, z)] = newTile;
+            });
+        });
+    }
+
+    /**
+     * Draw some cool hallways. This is some messy as shit spaghetti.
+     */
+    drawHallways(z:number, thickness:number, targetIterations:number) {
+        const position:[number, number, number] = [0,0,z];
+        let direction:number[];
+        const branchOptions = [[0,1],[-1,0],[1,0]];
+        const xOffset = Math.floor(thickness / 2);
+        const yOffset = Math.floor(thickness / 2);
+        for (let branchNum=0; branchNum<6; branchNum++) {
+            position[0] = 0;
+            position[1] = 0;
+            const branch = this.random.getRandomElement(branchOptions);
+            direction = [...branch];
+            let minSteps = this.random.getNumber(5 + thickness * 2 - branchNum, 15 + thickness * 2, true);
+            
+            for (let i = 0; i < targetIterations / 6 + 1; i++) {
+                position[0] += direction[0];
+                position[1] += direction[1];
+                if (position[1] < 0 && Math.abs(position[0]) < 5) {
+                    minSteps -= 5;
+                }
+                const timeToHeadHome = Math.abs(position[0]) + Math.abs(position[1]) + i >= (targetIterations / 6 - 2);
+                if (timeToHeadHome) {
+                    minSteps = minSteps > Math.max(Math.abs(position[0]), Math.abs(position[1])) ? 0 : minSteps;
+                }
+                for (let dx = 0; dx <= thickness; dx++) {
+                    for (let dy = 0; dy <= thickness; dy++) {
+                        const key = this.locationKey(
+                            position[0] + dx - xOffset,
+                            position[1] + dy - yOffset,
+                            z);
+                        const currentTile = this.mapData[key];
+                        if (!currentTile || currentTile.replaceable) {
+                            let newTile:Tile;
+                            if (dx === 0 || dy === 0 || Math.abs(dx) === thickness || Math.abs(dy) === thickness) {
+                                newTile = new Tile('#', false, true);
+                            } else {
+                                newTile = new Tile('.', true, false);
+                            }
+                            this.mapData[key] = newTile;
+                        }
+                    }
+                }
+                minSteps--;
+                // Weave around randomly
+                if (minSteps <= 0 && !timeToHeadHome) {
+                    if (this.random.getRandom() > 0.5) {
+                        direction = [direction[1], direction[0]];
+                    } else {
+                        direction = [-direction[1], -direction[0]];
+                    }
+                    minSteps = minSteps = this.random.getNumber(thickness * 2, 10 + thickness * 2, true);
+                }
+                // Head back home to make nice loops
+                if (minSteps <= 0 && timeToHeadHome) {
+                    if (Math.abs(position[1]) > Math.abs(position[0])) {
+                        direction = [0, -Math.sign(position[1])]
+                    } else {
+                        direction = [-Math.sign(position[0]), 0]
+                    }
+                    minSteps = Math.max(Math.abs(position[0]), Math.abs(position[1]));
+                }
+                // Don't overlap with the garbage room though
+                if (position[1] < 0) {
+                    if (direction[1] !== 0) {
+                        direction[1] = 1;
+                    } else {
+                        direction[0] = Math.sign(position[0]);
+                    }
+                }
+            }
+        };
     }
 }
 

@@ -41,6 +41,14 @@ class Player extends Entity {
             case "s":
                 doRefresh = this.step([0, 1, 0]);
                 break;
+            case ">":
+            case "e":
+                doRefresh = this.step([0, 0, -1]);
+                break;
+            case "<":
+            case "q":
+                doRefresh = this.step([0, 0, 1]);
+                break;
             default:
                 break;
         }

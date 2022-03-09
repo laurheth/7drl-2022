@@ -28,13 +28,18 @@ class Tile {
     passable:boolean;
 
     /**
+     * Whether this tile can be replaced.
+     */
+    replaceable:boolean;
+
+    /**
      * Things in this tile
      */
     entity:Entity|null;
     garbage:Garbage|null;
     otherShit:Thing[];
 
-    constructor(art:string, passable:boolean) {
+    constructor(art:string, passable:boolean, replaceable = true) {
         this.art = art;
         this.lastSeen = art;
         this.visible = true;
@@ -42,6 +47,7 @@ class Tile {
         this.garbage = null;
         this.otherShit = [];
         this.passable = passable;
+        this.replaceable = replaceable;
     }
 
     /**
