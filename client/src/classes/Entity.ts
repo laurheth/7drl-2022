@@ -38,18 +38,33 @@ class Entity extends Thing {
     move(newPosition:[number, number, number]):boolean {
         const newTile:Tile|null = this.map.getTile(...newPosition);
 
+        let postMove:(()=>void)|null = null;
         if (newTile && newTile.entity) {
-            this.interact(newTile.entity);
+            postMove = this.interact(newTile.entity);
         }
         
-        return super.move(newPosition);
+        const result = super.move(newPosition);
+
+        if (postMove) {
+            postMove();
+        }
+
+        return result;
     }
 
     /**
      * Interact with someone else.
      */
-    interact(otherEntity:Entity) {
-
+    interact(otherEntity:Entity):(()=>void)|null {
+        if (this.kind === "player") {
+            const tile:Tile|null = otherEntity.tile;
+            const myTile:Tile|null = this.tile;
+            if (tile && tile.passable && myTile && myTile.passable) {
+                tile.removeThing(otherEntity);
+                return ()=>otherEntity.move(myTile.position);
+            }
+        }
+        return null;
     }
 }
 

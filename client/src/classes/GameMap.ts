@@ -94,7 +94,12 @@ class GameMap {
 
         // Add in a hash check, to make sure we didn't fuck up
         // Store the hash
-        this.hashValue = hash;
+        this.hashValue = this.calculateHash();
+        
+        // Compare hashes to make sure we're actually on the same map.
+        if (hash && this.hashValue !== hash) {
+            console.log("The hashes don't match", this.hashValue, hash);
+        }
 
         this.cameraPosition = [0,0,0];
     }
@@ -124,6 +129,7 @@ class GameMap {
      * Refresh the view
      */
     refresh() {
+        console.log("cam", this.cameraPosition);
         this.game.display.draw(this, ...this.cameraPosition);
     }
 
@@ -139,6 +145,24 @@ class GameMap {
      */
     setThingId(id:number) {
         this.nextThingId = id;
+    }
+
+    /**
+     * Calculate a hash value for this map
+     */
+    calculateHash() {
+        const tiles:string[] = [];
+        for (const key in this.mapData) {
+            tiles.push(key + this.mapData[key].art);
+        }
+        tiles.sort();
+        let hash:number = 0;
+        tiles.forEach(tile => {
+            for (let i=0; i<tile.length; i++) {
+                hash = (31 * hash + tile.charCodeAt(i)) << 0;
+            }
+        });
+        return hash;
     }
 
     // All the map generating methods below this point...
@@ -183,6 +207,61 @@ class GameMap {
 
             rooms.forEach(room => room.instantiate());
         }
+
+        // Time to do some post-processing for doors
+        const doorTiles:Tile[] = this.getTilesOfType('+');
+        const doorTilesToFix:Tile[] = [];
+        doorTiles.forEach(tile=>{
+            const position = tile.position;
+            let walls = [0, 0];
+            let floors = [0, 0];
+            let doors = [0, 0];
+            for (let x=-1;x<2;x++) {
+                for (let y=-1;y<2;y++) {
+                    if (x !== 0 && y !== 0) {
+                        continue;
+                    }
+                    if (x === 0 && y === 0) {
+                        continue;
+                    }
+                    let index = 0;
+                    if (y !== 0) {
+                        index = 1;
+                    }
+                    const otherTile = this.getTile(
+                        position[0] + x,
+                        position[1] + y,
+                        position[2]
+                    );
+                    if (otherTile) {
+                        switch(otherTile.art) {
+                            case '#':
+                                walls[index]++;
+                                break;
+                            case '+':
+                                doors[index]++;
+                                break;
+                            case '.':
+                            case ' ':
+                                floors[index]++;
+                                break;
+                        }
+                    }
+                }
+            }
+            
+            for (let i=0; i<2; i++) {
+                floors[i] += floors[i] * doors[i];
+                walls[i] += walls[i] * doors[i];
+            }
+            
+            if (!(floors.includes(2) && walls.includes(2))) {
+                doorTilesToFix.push(tile);
+            }
+        });
+
+        doorTilesToFix.forEach(tile=>tile.art = '.');
+
         if (generateThings) {
             new Player([0,0,0], this);
         }
@@ -316,14 +395,14 @@ class GameMap {
     }
 
     /**
-     * Get replaceable tiles to use for something
+     * Get tiles of a certain type to do something
      */
-    getValidTiles(char:string, floorSpecific:boolean = false, z:number = 0):Tile[] {
+    getTilesOfType(char:string):Tile[] {
         const tiles:Tile[] = [];
 
         for (const key in this.mapData) {
             const thisTile = this.mapData[key];
-            if ((!floorSpecific || thisTile.position[2] === z) && thisTile.replaceable && thisTile.art === char) {
+            if (thisTile.art === char) {
                 tiles.push(thisTile);
             }
         }

@@ -53,7 +53,6 @@ class Player extends Entity {
                 break;
         }
         if (doRefresh) {
-            this.position.forEach((x,i) => this.map.cameraPosition[i] = x);
             this.net.broadcast({
                 requestType: "Updates",
                 updates: [{
@@ -64,6 +63,16 @@ class Player extends Entity {
             this.map.refresh();
         }
     }
+
+    /**
+     * Move. Also, update the camera when we do.
+     */
+    move(newPosition:[number, number, number]):boolean {
+        const result = super.move(newPosition);
+        this.position.forEach((x,i) => this.map.cameraPosition[i] = x);
+        return result;
+    }
+
 }
 
 export default Player;

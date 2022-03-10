@@ -12,6 +12,8 @@ class Thing {
     layer:number;
     id:number;
     kind:string;
+    falling:boolean;
+    fallingInterval:number;
 
     onDeath:(()=>void)|undefined;
 
@@ -33,12 +35,17 @@ class Thing {
             this.map.things[this.id] = this;
         }
         this.kind = "thing";
+        this.falling = false;
+        this.fallingInterval = 0;
     }
 
     /**
      * Move to a new position.
      */
     move(newPosition:[number, number, number]):boolean {
+        if (this.falling && (newPosition[0] !== this.position[0] || newPosition[1] !== this.position[1])) {
+            return false;
+        }
         const newTile = this.map.getTile(...newPosition);
         if (newTile) {
             if (newTile.putThing(this)) {
@@ -47,8 +54,24 @@ class Thing {
                 }
                 this.tile = newTile;
                 this.position = newPosition;
+                if (!this.falling && newTile.art === ' ') {
+                    // Uh oh, no floor. Time to fall!
+                    this.falling = true;
+                    this.fallingInterval = window.setInterval(()=>{
+                        this.move([this.position[0],this.position[1],this.position[2]-1])
+                        this.map.refresh();
+                    }, 200);
+                } else if (this.falling && newTile.art !== ' ') {
+                    this.falling = false;
+                    clearInterval(this.fallingInterval);
+                }
                 return true;
             }
+        }
+        // Idk, we landed on something, don't think about it too hard
+        if (this.falling) {
+            this.falling = false;
+            clearInterval(this.fallingInterval);
         }
         return false;
     }
