@@ -39,7 +39,12 @@ class Tile {
     garbage:Garbage|null;
     otherShit:Thing[];
 
-    constructor(art:string, passable:boolean, replaceable = true) {
+    /**
+     * Position of this tile
+     */
+    position:[number, number, number]
+
+    constructor(position:[number, number, number], art:string, passable:boolean, replaceable = true) {
         this.art = art;
         this.lastSeen = art;
         this.visible = true;
@@ -48,6 +53,7 @@ class Tile {
         this.otherShit = [];
         this.passable = passable;
         this.replaceable = replaceable;
+        this.position = position;
     }
 
     /**

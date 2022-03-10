@@ -26,7 +26,7 @@ class GameManager {
     net:Net;
 
     constructor() {
-        this.display = new GameDisplay();
+        this.display = new GameDisplay(100, 100);
         this.net = new Net(this, ()=>this.onConnected());
         this.net.addCallback("SessionDetails", this.onSessionDetails.bind(this));
         this.net.addCallback("GameList", this.onGameList.bind(this));
