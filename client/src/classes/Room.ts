@@ -26,6 +26,9 @@ class Room {
         const offsetX = Math.floor(-width/2);
         const offsetY = Math.floor(-height/2);
 
+        const colors = ['green','blue','purple'];
+        const color = this.random.getRandomElement(colors);
+
         for (let x=0; x<=width; x++) {
             for (let y=0; y<=height; y++) {
                 let newTile:Tile;
@@ -37,21 +40,21 @@ class Room {
                 const thisKey = this.map.locationKey(...thisPos);
                 if (x === 0 || y === 0 || x===width || y===height) {
                     const currentTile = this.map.mapData[thisKey];
-                    if (currentTile && currentTile.replaceable) {
-                        continue;
-                    }
+                    // if (currentTile && currentTile.replaceable) {
+                    //     continue;
+                    // }
                     if (currentTile && currentTile.art === '.') {
                         newTile = new Tile(
-                            thisPos, '+', true, true
+                            thisPos, '+', ['floor'], true, true, false
                         );
                     } else {
                         newTile = new Tile(
-                            thisPos, '#', false, true
+                            thisPos, '#', ['wall',color], false, true, true
                         );
                     }
                 } else {
                     newTile = new Tile(
-                        thisPos, '.', true, false
+                        thisPos, '.', ['floor', 'room'], true, false, true
                     );
                 }
                 this.map.mapData[thisKey] = newTile;

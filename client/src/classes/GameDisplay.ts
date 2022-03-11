@@ -1,6 +1,16 @@
 import { Display } from "roguelike-pumpkin-patch";
 import GameMap from "./GameMap";
 
+let twemoji:{parse:(str:string)=>string};
+try {
+    twemoji=require('twemoji');
+}
+catch {
+    twemoji={
+        parse:(str:string)=>str
+    }
+}
+
 class GameDisplay {
     width = 20;
     height = 20;
@@ -50,8 +60,24 @@ class GameDisplay {
 
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
+                const tile = map.getTile(i + xx, j + yy, z);
+
+                let artStr = " ";
+                if (tile && tile.getArt()) {
+                    artStr = tile.getArt();
+                }
+
+                // Try to do some twemoji shit
+                try {
+                    artStr = twemoji.parse(artStr);
+                }
+                catch {
+                    // Eh, stick with default
+                }
+
                 this.display.setTile(i, j, {
-                    content: map.getTile(i + xx, j + yy, z)?.getArt()
+                    content: artStr,
+                    classList: tile ? tile?.getClassList() : []
                 });
             }
         }

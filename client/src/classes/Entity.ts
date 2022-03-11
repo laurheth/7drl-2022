@@ -7,6 +7,8 @@ import Tile from "./Tile";
  */
 class Entity extends Thing {
 
+    name:string|undefined;
+
     constructor(art:string, position:[number,number,number], map:GameMap) {
         super(art, position, map);
         this.kind = "entity";
@@ -65,6 +67,24 @@ class Entity extends Thing {
             }
         }
         return null;
+    }
+
+    /**
+     * Get the name of this entity.
+     */
+    getName() {
+        if (this.name) {
+            return this.name;
+        } else {
+            return this.kind;
+        }
+    }
+
+    /**
+     * Set the name of this entity.
+     */
+    setName(name:string) {
+        this.name = name;
     }
 }
 

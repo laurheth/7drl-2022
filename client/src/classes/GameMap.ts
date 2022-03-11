@@ -83,7 +83,7 @@ class GameMap {
                     newThing = new Player(position, this);
                     entity.kind = "player";
                 } else if (entity.kind === "player") {
-                    newThing = new Entity('@', position, this);
+                    newThing = new Entity('🦝', position, this);
                 }
                 if (newThing) {
                     newThing.kind = entity.kind;
@@ -257,10 +257,19 @@ class GameMap {
             
             if (!(floors.includes(2) && walls.includes(2))) {
                 doorTilesToFix.push(tile);
+            } else {
+                tile.hideBaseArt = true;
+                tile.classList.push('doorClosed');
             }
         });
 
-        doorTilesToFix.forEach(tile=>tile.art = '.');
+        doorTilesToFix.forEach(tile=>{
+            tile.art = '.';
+            tile.hideBaseArt = true;
+        });
+
+        // Do some postprocessing for walls
+        const wallTiles:Tile[] = this.getTilesOfType('#');
 
         if (generateThings) {
             new Player([0,0,0], this);
@@ -317,6 +326,8 @@ class GameMap {
 
         design.forEach((row,y)=>{
             row.split('').forEach((char,x)=>{
+                let hideBase:boolean = false;
+                let classList:string[] = [];
                 if (char === ' ') {
                     return;
                 }
@@ -338,7 +349,19 @@ class GameMap {
                     replaceable = true;
                     char = '#';
                 }
-                const newTile:Tile = new Tile([x - xOffset, y - yOffset, z], char, char !== '#', replaceable);
+                switch (char) {
+                    case '#':
+                        hideBase = true;
+                        classList.push('wall');
+                        break;
+                    case '.':
+                        hideBase = true;
+                    case '>':
+                    case '<':
+                    case '+':
+                        classList.push('floor');
+                }
+                const newTile:Tile = new Tile([x - xOffset, y - yOffset, z], char, classList, char !== '#', replaceable, hideBase);
                 this.mapData[this.locationKey(x - xOffset, y - yOffset, z)] = newTile;
             });
         });
@@ -374,9 +397,9 @@ class GameMap {
                     if (!currentTile || currentTile.replaceable) {
                         let newTile:Tile;
                         if (dx === 0 || dy === 0 || Math.abs(dx) === thickness || Math.abs(dy) === thickness) {
-                            newTile = new Tile(tilePos, '#', false, true);
+                            newTile = new Tile(tilePos, '#', ['wall'], false, true, true);
                         } else {
-                            newTile = new Tile(tilePos, '.', true, false);
+                            newTile = new Tile(tilePos, '.', ['floor'], true, false, true);
                         }
                         this.mapData[key] = newTile;
                     }

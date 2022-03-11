@@ -18,9 +18,19 @@ class Tile {
     lastSeen:string;
 
     /**
-     * Base appearance of the tile.
+     * Internal representation of the tile; I might not actually show this.
      */
     art:string;
+
+    /**
+     * Classlist of the tile.
+     */
+    classList:string[];
+
+    /**
+     * Hide the base art of the tile.
+     */
+    hideBaseArt:boolean;
 
     /**
      * Whether or not this tile is passable
@@ -44,7 +54,7 @@ class Tile {
      */
     position:[number, number, number]
 
-    constructor(position:[number, number, number], art:string, passable:boolean, replaceable = true) {
+    constructor(position:[number, number, number], art:string, classList:string[], passable:boolean, replaceable = true, hideBaseArt:boolean = false) {
         this.art = art;
         this.lastSeen = art;
         this.visible = true;
@@ -54,6 +64,8 @@ class Tile {
         this.passable = passable;
         this.replaceable = replaceable;
         this.position = position;
+        this.classList = classList;
+        this.hideBaseArt = hideBaseArt;
     }
 
     /**
@@ -68,10 +80,17 @@ class Tile {
             } else if (this.otherShit.length > 0) {
                 return this.otherShit[0].getArt();
             }
-            return this.art;
+            return (this.hideBaseArt) ? '' : this.art;
         } else {
             return this.lastSeen;
         }
+    }
+
+    /**
+     * Get the class list of the tile.
+     */
+    getClassList():string[] {
+        return this.classList;
     }
 
     /**

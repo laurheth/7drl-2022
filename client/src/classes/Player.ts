@@ -10,7 +10,7 @@ class Player extends Entity {
     net:NetHandler;
 
     constructor(position:[number,number,number], map:GameMap) {
-        super('@', position, map);
+        super('🦝', position, map);
         window.addEventListener("keydown", (event:KeyboardEvent) => this.handler(event));
         map.cameraPosition = position;
         this.net = map.game.net;
