@@ -68,7 +68,9 @@ class GameManager {
                 this.net.broadcast({
                     requestType:"Request",
                     details:"join",
-                    id: gameList[0].id
+                    id: gameList[0].id,
+                    name:"howdy",
+                    art:Math.floor(100*Math.random())
                 })
             } else {
                 // Otherwise, make a game and send the details off
@@ -80,7 +82,9 @@ class GameManager {
                     entityList.push({
                         id: thing.id,
                         position: thing.position,
-                        kind: thing.kind
+                        kind: thing.kind,
+                        name: thing.getName(),
+                        art: (thing.kind === "player") ? thing.art : undefined
                     })
                 }
                 this.net.broadcast({
@@ -105,7 +109,6 @@ class GameManager {
             updates.forEach(update => {
                 if (this.gameMap) {
                     let thing:Thing = this.gameMap.things[update.id];
-                    console.log(update.id, thing, this.gameMap.things);
                     if (update.position) {
                         thing.move(update.position);
                     }
@@ -132,7 +135,10 @@ class GameManager {
             let newThing:Thing;
             this.gameMap.setThingId(message.id);
             if (message.kind === "player") {
-                newThing = new Entity('@', message.position, this.gameMap);
+                const art = (message.art) ? message.art : '🙂';
+                const name = (message.name) ? message.name : "Mystery Friend";
+                newThing = new Entity(art, message.position, this.gameMap);
+                newThing.setName(name);
             } else {
                 newThing = new Thing('&', message.position, this.gameMap);
             }

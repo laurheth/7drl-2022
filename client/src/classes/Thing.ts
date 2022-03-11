@@ -14,6 +14,7 @@ class Thing {
     kind:string;
     falling:boolean;
     fallingInterval:number;
+    name:string|undefined;
 
     onDeath:(()=>void)|undefined;
 
@@ -98,6 +99,24 @@ class Thing {
         }
         this.id = id;
         this.map.things[id] = this;
+    }
+    
+    /**
+     * Get the name of this entity.
+     */
+     getName() {
+        if (this.name) {
+            return this.name;
+        } else {
+            return this.kind;
+        }
+    }
+
+    /**
+     * Set the name of this entity.
+     */
+    setName(name:string) {
+        this.name = name;
     }
 }
 

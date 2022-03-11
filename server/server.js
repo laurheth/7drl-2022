@@ -109,6 +109,13 @@ wss.on('connection', function connection(ws) {
                 } else if (message.details === "join") {
                     // A new Player wants to join the game!
                     myGameId = message.id;
+                    const name = message.name ? message.name : "Mystery Friend";
+                    const artNum = (Number.isFinite(message.art) && message.art >= 0) ? message.art : 0;
+
+                    const emojis = ["🙂","😀","😁","😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","🥰","😶","😏","🤐","😴","😌","🤑","😤","🤪","🥴","🤠","🧐","💀","👻","😺","🐵","🐶","🐺","🦊","🦝","🐮","🐗","🐭","🐹","🐰","🐻","🐼","🐸","🦓","🐴","🦄","🐔","🐲","🐌","🐦"];
+
+                    const art = emojis[artNum % emojis.length];
+
                     // Assign them an entity ID, and send the session details to them.
                     const game = games[message.id];
                     if (game) {
@@ -116,7 +123,9 @@ wss.on('connection', function connection(ws) {
                         game.entities[myEntityId] = {
                             id:myEntityId,
                             kind:"you",
-                            position:[0,0,0]
+                            position:[0,0,0],
+                            art: art,
+                            name: name
                         }
                         ws.send(JSON.stringify({
                             requestType: "SessionDetails",
@@ -132,7 +141,9 @@ wss.on('connection', function connection(ws) {
                                 requestType:"Spawn",
                                 id: myEntityId,
                                 position:[0,0,0],
-                                kind:"player"
+                                kind:"player",
+                                name: name,
+                                art: art
                             }))
                         })
                         game.clients.push(ws);

@@ -77,7 +77,7 @@ class GameDisplay {
 
                 this.display.setTile(i, j, {
                     content: artStr,
-                    classList: tile ? tile?.getClassList() : []
+                    classList: tile ? tile?.getClassList() : [],
                 });
             }
         }

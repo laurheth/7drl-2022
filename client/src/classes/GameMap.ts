@@ -7,6 +7,7 @@ import Entity from "./Entity";
 import NetHandler from "./NetHandler";
 import { EntityDetails } from "../interfaces/NetInterfaces";
 import Room from "./Room";
+import { isGarbage, makeSomeGarbage } from "../util/garbageFactory";
 
 /**
  * Class to carry around all of the important map data.
@@ -80,16 +81,36 @@ class GameMap {
                 const position = entity.position;
                 let newThing = null;
                 if (entity.kind === "you") {
+                    console.log("me?", entity);
                     newThing = new Player(position, this);
                     entity.kind = "player";
+                    if (entity.art) {
+                        newThing.art = entity.art;
+                    }
                 } else if (entity.kind === "player") {
                     newThing = new Entity('🦝', position, this);
+                    if (entity.art) {
+                        newThing.art = entity.art;
+                    }
+                } else if (isGarbage(entity.kind)) {
+                    newThing = makeSomeGarbage(position, this, entity.kind);
                 }
                 if (newThing) {
                     newThing.kind = entity.kind;
+                    if (entity.name) {
+                        newThing.setName(entity.name);
+                    }
                     newThing.setId(entity.id);
                 }
             })
+        } else {
+            const availableTiles:Tile[] = this.getTilesOfType('.');
+            const targetNum = 0.1 * availableTiles.length;
+            for (let i=0; i<targetNum; i++) {
+                const index = this.random.getNumber(0, availableTiles.length - 1, true);
+                const tile = availableTiles.splice(index, 1)[0];
+                const garbage = makeSomeGarbage(tile.position, this);
+            }
         }
 
         // Add in a hash check, to make sure we didn't fuck up

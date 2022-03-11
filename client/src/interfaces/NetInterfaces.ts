@@ -20,6 +20,8 @@ export interface EntityDetails {
     kind: string;
     position:[number, number, number];
     status?: string;
+    art?: string;
+    name?:string;
 }
 
 /**
@@ -60,6 +62,14 @@ export interface GameRequest {
     id?: number;
 }
 
+export interface JoinRequest extends GameRequest {
+    requestType: "Request";
+    details: "join";
+    id: number;
+    name: string;
+    art: number;
+}
+
 /**
  * Spawn a new thing
  */
@@ -67,10 +77,12 @@ export interface Spawn {
     requestType: "Spawn";
     id: number;
     kind: string;
+    name?: string;
+    art?: string;
     position: [number, number, number];
 }
 
 /**
  * Generic message
  */
-export type GameMessage = GameRequest | GameList | SessionDetails | ThingUpdateBundle | Spawn;
+export type GameMessage = GameRequest | GameList | SessionDetails | ThingUpdateBundle | Spawn | JoinRequest;
