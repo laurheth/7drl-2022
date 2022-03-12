@@ -119,15 +119,34 @@ class UIManager {
         const actions:ActionWeCanDo[] = [];
         if (tile) {
             if (player.holding) {
-                actions.push({
-                    description: `Drop ${player.holding.getName()}`,
-                    action: ()=>{
-                        player.dropThing();
-                        player.updateAndRefresh();
-                    },
-                    needToRegenerate: true
-                });
+                // Check for empty space to drop a thing down the chute
+                const chutePosition = player.adjacentChuteExists();
+                // We found a chute to shove this thing down
+                if (chutePosition) {
+                    actions.push({
+                        description: `Put ${player.holding.getName()} down the chute!`,
+                        action: ()=>{
+                            if (chutePosition) {
+                                player.dropThing(chutePosition);
+                            }
+                            player.updateAndRefresh();
+                        },
+                        needToRegenerate: true
+                    })
+                } else {
+                    // Generic dropping
+                    actions.push({
+                        description: `Drop ${player.holding.getName()}`,
+                        action: ()=>{
+                            player.dropThing();
+                            player.updateAndRefresh();
+                        },
+                        needToRegenerate: true
+                    });
+                }
+
             }
+            // Pick up!
             if (tile.garbage) {
                 actions.push({
                     description: `Pick up ${tile.garbage.getName()}`,

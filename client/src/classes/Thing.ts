@@ -16,6 +16,7 @@ class Thing {
     name:string|undefined;
     holding:Thing|null;
     hidden:boolean = false;
+    trackFalling:number = -1;
 
     onDeath:(()=>void)|undefined;
 
@@ -62,6 +63,17 @@ class Thing {
                     }, 200);
                 } else if (this.falling && newTile.art !== ' ') {
                     this.falling = false;
+                    if (this.trackFalling) {
+                        this.map.game.net.broadcast({
+                            requestType: "Updates",
+                            sender: this.trackFalling,
+                            updates: [{
+                                id: this.id,
+                                position: this.position
+                            }]
+                        });
+                        this.trackFalling = -1;
+                    }
                     clearInterval(this.fallingInterval);
                 }
                 return true;
@@ -112,9 +124,9 @@ class Thing {
         return false;
     }
 
-    dropThing():boolean {
+    dropThing(usePosition?:[number,number,number]|null):boolean {
         if (this.holding && this.position) {
-            const dropTile = this.holding.findEmptySpot(this.position)
+            const dropTile = (usePosition) ? this.holding.findEmptySpot(usePosition) : this.holding.findEmptySpot(this.position);
             if (dropTile?.position) {
                 this.holding.move(dropTile.position);
                 this.holding.hidden = false;
@@ -164,7 +176,7 @@ class Thing {
         do {
             for(let dx=-distance; dx<=distance; dx++) {
                 for (let dy=-distance; dy<=distance; dy++) {
-                    if (Math.abs(dx) !== distance || Math.abs(dy) !== distance) {
+                    if (Math.abs(dx) !== distance && Math.abs(dy) !== distance) {
                         // Skip tiles we have already checked
                         continue;
                     }

@@ -86,7 +86,8 @@ class Player extends Entity {
                 }
                 break;
             case "p":
-                doRefresh = this.dropThing();
+                const chutePosition = this.adjacentChuteExists();
+                doRefresh = this.dropThing(chutePosition);
                 break;
             default:
                 break;
@@ -150,12 +151,13 @@ class Player extends Entity {
         return super.interact(otherEntity);
     }
 
-    dropThing(): boolean {
+    dropThing(position?:[number, number, number]|null): boolean {
         if (this.holding) {
             this.otherThingsToUpdate.push(this.holding);
+            this.holding.trackFalling = this.id;
             this.uiManager.addMessageToLog(`You drop the ${this.holding.getName()}.`)
         }
-        return super.dropThing();
+        return super.dropThing(position);
     }
 
     grabThing(thingToGrab: Thing): boolean {
@@ -173,6 +175,27 @@ class Player extends Entity {
         } else {
             return "You";
         }
+    }
+
+    adjacentChuteExists():[number, number, number]|null {
+        if (!this.map || !this.tile) {
+            return null;
+        }
+        const position = this.tile.position;
+        let chutePosition:[number, number, number]|null = null;
+        for (let dx=-1; dx<2; dx++) {
+            for (let dy=-1; dy<2; dy++) {
+                const otherTile = this.map.getTile(
+                    position[0] + dx,
+                    position[1] + dy,
+                    position[2]
+                );
+                if (otherTile && otherTile.art === ' ') {
+                    chutePosition = otherTile.position;
+                }
+            }
+        }
+        return chutePosition;
     }
 
 }
