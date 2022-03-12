@@ -80,7 +80,7 @@ class Tile {
             } else if (this.otherShit.length > 0) {
                 return this.otherShit[0].getArt();
             }
-            return (this.hideBaseArt) ? '' : this.art;
+            return this.art;
         } else {
             return this.lastSeen;
         }
@@ -90,7 +90,11 @@ class Tile {
      * Get the class list of the tile.
      */
     getClassList():string[] {
-        return this.classList;
+        const classList = [...this.classList];
+        if (this.hideBaseArt) {
+            classList.push("hideText");
+        }
+        return classList;
     }
 
     /**

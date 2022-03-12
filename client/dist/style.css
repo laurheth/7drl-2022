@@ -10,16 +10,18 @@ html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}bo
     height: 100vh;
 }
 
+.pumpkin-tile {
+    background-size: cover;
+}
+
 .wall {
     background-color: #933;
-    background-size: cover;
     background-image: url(./art/badBricksGray.png);
     background-blend-mode: multiply;
 }
 
 
 .floor {
-    background-size: cover;
     background-color: #ffffff;
     background-image: url(./art/badConcrete.png);
     background-blend-mode: multiply;
@@ -31,20 +33,21 @@ html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}bo
 }
 
 .doorClosed {
-    /* background-image: url(./art/doorOpen.png), url(./art/badConcrete.png); */
     background-image: url(./art/doorClosed.png);
     background-blend-mode: normal;
-    background-size: cover;
+}
+
+.doorOpen {
+    background-image: url(./art/doorOpen.png), url(./art/badConcrete.png);
+    background-blend-mode: normal;
 }
 
 .stairsUp {
     background-image: url(./art/stairsUp.png), url(./art/badConcrete.png);
-    background-size: cover;
 }
 
 .stairsDown {
     background-image: url(./art/stairsDown.png), url(./art/badConcrete.png);
-    background-size: cover;
 }
 
 .green {
@@ -63,6 +66,9 @@ html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}bo
     background-color: purple;
 }
 
+.hideText {
+    color: transparent;
+}
 
 /* Make twemoji's fit */
 img.emoji {

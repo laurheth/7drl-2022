@@ -37,6 +37,29 @@ class Entity extends Thing {
      */
     move(newPosition:[number, number, number]):boolean {
         const newTile:Tile|null = this.map.getTile(...newPosition);
+        
+        // Handle doors
+        if (newTile && newTile.art === '+') {
+            newTile.art = '-';
+            let index = newTile.classList.indexOf('doorClosed');
+            newTile.classList.splice(index, 1);
+            newTile.classList.push('doorOpen');
+
+            const me = this;
+            // close the door behind you automatically
+            const interval = window.setInterval(function closeDoor() {
+                if (!newTile.entity) {
+                    newTile.art = '+';
+                    index = newTile.classList.indexOf('doorOpen');
+                    newTile.classList.splice(index, 1);
+                    newTile.classList.push('doorClosed');
+                    me.map.refresh();
+                    window.clearInterval(interval);
+                }
+            }, 3000);
+
+            return true;
+        }
 
         let postMove:(()=>void)|null = null;
         if (newTile && newTile.entity) {
