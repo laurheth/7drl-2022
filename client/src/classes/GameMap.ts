@@ -63,6 +63,11 @@ class GameMap {
      */
     things:{[key:number]:Thing}
 
+    /**
+     * Tiles in the garbage room. The game is over when these are full.
+     */
+    winTiles:Tile[];
+
     constructor(name:string, seed:number, hash:number, game:GameManager, entities:EntityDetails[]|null = null) {
         this.cameraPosition = [0,0,0];
 
@@ -81,6 +86,7 @@ class GameMap {
 
         // Generate map data
         this.mapData = {};
+        this.winTiles = [];
         this.generateMap(entities === null);
 
         if (entities) {
@@ -114,8 +120,8 @@ class GameMap {
                 }
             })
         } else {
-            const availableTiles:Tile[] = this.getTilesOfType('.');
-            const targetNum = 0.1 * availableTiles.length;
+            const availableTiles:Tile[] = this.getTilesOfType('.').filter(tile=>!this.winTiles.includes(tile));
+            const targetNum = Math.max(0.1 * availableTiles.length, 1.5 * this.winTiles.length);
             for (let i=0; i<targetNum; i++) {
                 const index = this.random.getNumber(0, availableTiles.length - 1, true);
                 const tile = availableTiles.splice(index, 1)[0];
@@ -311,11 +317,12 @@ class GameMap {
         let design:string[];
         if (z > 0) {
             design = [
-                '    ####    ',
-                '   ##XX##   ',
-                '   #....#   ',
-                '   #....#   ',
-                '***##++##***',
+                '    YYYY    ',
+                '   YYXXYY   ',
+                '   Y....Y   ',
+                '   Y....Y   ',
+                '   Y....Y   ',
+                '***YY++YY***',
                 '*..........*',
                 '*..........*',
                 '*..######..*',
@@ -330,14 +337,16 @@ class GameMap {
             ];
         } else {
             design = [
-                '    ####    ',
-                '#####..#####',
-                '#..........#',
-                '#..........#',
-                '#..........#',
-                '#..........#',
-                '#..........#',
-                '#++######++#',
+                '    YYYY    ',
+                'YYYYYyyYYYYY',
+                'YyyyyyyyyyyY',
+                'YyyyyyyyyyyY',
+                'YyyyyyyyyyyY',
+                'YyyyyyyyyyyY',
+                'YyyyyyyyyyyY',
+                'YyyyyyyyyyyY',
+                'Y++YYYYYY++Y',
+                '#..######..#',
                 '*..#....#..*',
                 '*..#....#..*',
                 '*..#....#..*',
@@ -356,11 +365,20 @@ class GameMap {
             row.split('').forEach((char,x)=>{
                 let hideBase:boolean = false;
                 let classList:string[] = [];
+                let addToWinTiles = false;
                 if (char === ' ') {
                     return;
                 }
                 if (char === 'X') {
                     char = ' ';
+                }
+                if (char === 'Y') {
+                    char = '#';
+                    classList.push("yellow");
+                } else if (char === 'y') {
+                    char = '.';
+                    classList.push("yellow");
+                    addToWinTiles = true;
                 }
                 if (z > 0 && z % 2 === 0) {
                     if (char === '>') {
@@ -398,6 +416,9 @@ class GameMap {
                 }
                 const newTile:Tile = new Tile([x - xOffset, y - yOffset, z], char, classList, char !== '#', replaceable, hideBase);
                 this.mapData[this.locationKey(x - xOffset, y - yOffset, z)] = newTile;
+                if (addToWinTiles) {
+                    this.winTiles.push(newTile);
+                }
             });
         });
     }

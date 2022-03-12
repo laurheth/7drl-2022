@@ -99,7 +99,9 @@ class UIManager {
     updateControls(player:Player, map:GameMap) {
         // What is the player holding right now?
         if (player.holding) {
-            let heldText = `${player.holding.art} ${player.holding.getName()}`;
+            let name = player.holding.getName();
+            name = name.slice(0, 1).toUpperCase() + name.slice(1);
+            let heldText = `${player.holding.art} ${name}`;
             // Try to do some twemoji shit
             try {
                 heldText = twemoji.parse(heldText);

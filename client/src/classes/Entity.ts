@@ -103,8 +103,8 @@ class Entity extends Thing {
             if (tile && tile.passable && myTile && myTile.passable) {
 
                 if (otherEntity.tile && otherEntity.tile.visible) {
-                    if (this.getName() === "You") {
-                        this.map.game.uiManager.addMessageToLog(`${this.getName()} switch places with ${otherEntity.getName()}!`);
+                    if (this.getName().toLowerCase() === "you") {
+                        this.map.game.uiManager.addMessageToLog(`${this.getName(false)} switch places with ${otherEntity.getName()}!`);
                     } else {
                         this.map.game.uiManager.addMessageToLog(`${this.getName()} switches places with ${otherEntity.getName(true)}!`);
                     }

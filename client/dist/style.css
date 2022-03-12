@@ -182,6 +182,10 @@ body {
     background-color: purple;
 }
 
+.yellow {
+    background-color: goldenrod;
+}
+
 .hideText {
     color: transparent;
 }
