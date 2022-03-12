@@ -12,12 +12,15 @@ class Player extends Entity {
     constructor(position:[number,number,number], map:GameMap) {
         super('🦝', position, map);
         window.addEventListener("keydown", (event:KeyboardEvent) => this.handler(event));
-        map.cameraPosition = position;
+        map.cameraPosition = this.position;
         this.net = map.game.net;
         this.kind = "player";
     }
 
     handler(event:KeyboardEvent) {
+        if (this.falling) {
+            return;
+        }
         let doRefresh = false;
         console.log("Keypress for " + this.id + " is " + event.key);
         switch (event.key) {

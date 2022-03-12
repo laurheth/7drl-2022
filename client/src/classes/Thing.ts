@@ -9,7 +9,6 @@ class Thing {
     position:[number,number,number];
     tile:Tile|null;
     map:GameMap;
-    layer:number;
     id:number;
     kind:string;
     falling:boolean;
@@ -20,16 +19,16 @@ class Thing {
 
     constructor(art:string, position:[number,number,number], map:GameMap) {
         this.art = art;
-        this.position = [...position];
         this.map = map;
-        const tile = map.getTile(...position);
-        this.layer = -5;
+        const tile = this.findEmptySpot(position);
         if (tile) {
+            position = [...tile.position];
             this.tile = tile;
             this.tile.putThing(this);
         } else {
             this.tile = null;
         }
+        this.position = [...position];
         this.id = map.getId();
         console.log("Thing id " + this.id);
         if (!this.map.things[this.id]) {
@@ -44,9 +43,6 @@ class Thing {
      * Move to a new position.
      */
     move(newPosition:[number, number, number]):boolean {
-        if (this.falling && (newPosition[0] !== this.position[0] || newPosition[1] !== this.position[1])) {
-            return false;
-        }
         const newTile = this.map.getTile(...newPosition);
         if (newTile) {
             if (newTile.putThing(this)) {
@@ -67,12 +63,12 @@ class Thing {
                     clearInterval(this.fallingInterval);
                 }
                 return true;
+            } else if (this.falling) {
+                const tile = this.findEmptySpot(newPosition);
+                if (tile) {
+                    this.move(tile.position);
+                }
             }
-        }
-        // Idk, we landed on something, don't think about it too hard
-        if (this.falling) {
-            this.falling = false;
-            clearInterval(this.fallingInterval);
         }
         return false;
     }
@@ -117,6 +113,39 @@ class Thing {
      */
     setName(name:string) {
         this.name = name;
+    }
+
+    /**
+     * Find an empty spot to go
+     */
+    findEmptySpot(position:[number, number, number]):Tile|null {
+        let distance = 0;
+        let validTile:Tile|null = null;
+        do {
+            for(let dx=-distance; dx<=distance; dx++) {
+                for (let dy=-distance; dy<=distance; dy++) {
+                    if (Math.abs(dx) !== distance || Math.abs(dy) !== distance) {
+                        // Skip tiles we have already checked
+                        continue;
+                    }
+                    const thisTile = this.map.getTile(
+                        position[0] + dx,
+                        position[1] + dy,
+                        position[2]
+                    );
+                    if (thisTile && this.canFitHere(thisTile)) {
+                        validTile = thisTile;
+                    }
+                }
+            }
+            distance++;
+        } while (!validTile && distance < 50);
+
+        return validTile;
+    }
+
+    canFitHere(tile:Tile):boolean {
+        return tile !== undefined;
     }
 }
 

@@ -56,7 +56,7 @@ class Entity extends Thing {
      * Interact with someone else.
      */
     interact(otherEntity:Entity):(()=>void)|null {
-        if (this.kind === "player") {
+        if (this.kind === "player" && !this.falling) {
             const tile:Tile|null = otherEntity.tile;
             const myTile:Tile|null = this.tile;
             if (tile && tile.passable && myTile && myTile.passable) {
@@ -65,6 +65,10 @@ class Entity extends Thing {
             }
         }
         return null;
+    }
+
+    canFitHere(tile:Tile):boolean {
+        return tile && tile.passable && !tile.entity;
     }
 }
 

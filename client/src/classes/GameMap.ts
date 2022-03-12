@@ -59,6 +59,8 @@ class GameMap {
     things:{[key:number]:Thing}
 
     constructor(name:string, seed:number, hash:number, game:GameManager, entities:EntityDetails[]|null = null) {
+        this.cameraPosition = [0,0,0];
+
         this.game = game;
 
         this.things = {};
@@ -121,8 +123,6 @@ class GameMap {
         if (hash && this.hashValue !== hash) {
             console.log("The hashes don't match", this.hashValue, hash);
         }
-
-        this.cameraPosition = [0,0,0];
     }
 
     /**
