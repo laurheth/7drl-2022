@@ -14,6 +14,8 @@ class Thing {
     falling:boolean;
     fallingInterval:number;
     name:string|undefined;
+    holding:Thing|null;
+    hidden:boolean = false;
 
     onDeath:(()=>void)|undefined;
 
@@ -30,13 +32,13 @@ class Thing {
         }
         this.position = [...position];
         this.id = map.getId();
-        console.log("Thing id " + this.id);
         if (!this.map.things[this.id]) {
             this.map.things[this.id] = this;
         }
         this.kind = "thing";
         this.falling = false;
         this.fallingInterval = 0;
+        this.holding = null;
     }
 
     /**
@@ -82,7 +84,45 @@ class Thing {
             if (this.onDeath) {
                 this.onDeath();
             }
+            this.hideMe();
         }
+    }
+
+    hideMe() {
+        this.tile?.removeThing(this);
+        this.tile = null;
+        this.position = [0,0,-100];
+        this.hidden = true;
+    }
+
+    grabThing(thingToGrab:Thing):boolean {
+        // Make sure we actually exist someting
+        if (!this.position) {
+            return false;
+        }
+        // No grabbing players
+        if (thingToGrab.kind !== "player") {
+            thingToGrab.hideMe();
+            if (this.holding) {
+                this.dropThing();
+            }
+            this.holding = thingToGrab;
+            return true;
+        }
+        return false;
+    }
+
+    dropThing():boolean {
+        if (this.holding && this.position) {
+            const dropTile = this.holding.findEmptySpot(this.position)
+            if (dropTile?.position) {
+                this.holding.move(dropTile.position);
+                this.holding.hidden = false;
+            }
+            this.holding = null;
+            return true;
+        }
+        return false;
     }
 
     getArt() {
@@ -100,7 +140,7 @@ class Thing {
     /**
      * Get the name of this entity.
      */
-     getName() {
+     getName(lowerCase:boolean=false) {
         if (this.name) {
             return this.name;
         } else {

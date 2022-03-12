@@ -49,7 +49,7 @@ class GameDisplay {
 
         // One cool thing you can do is add a listener for window resizing
         // Keep your display looking good!
-        window.addEventListener("resize",()=>{
+        window.addEventListener("resize",()=>{            
             this.display.tileSize = this.display.calculateTileSize();
         });
     }

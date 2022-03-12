@@ -1,7 +1,10 @@
 import { FOV } from "roguelike-pumpkin-patch";
 import Entity from "./Entity";
+import Thing from "./Thing";
 import GameMap from "./GameMap";
 import NetHandler from "./NetHandler";
+import { ThingUpdate } from "../interfaces/NetInterfaces";
+import UIManager from "./UIManager";
 
 class Player extends Entity {
 
@@ -14,6 +17,16 @@ class Player extends Entity {
      * FOV handler
      */
     fov: FOV;
+
+    /**
+     * Updates to send during this cycle
+     */
+    otherThingsToUpdate:Thing[] = [];
+
+    /**
+     * UI Manager
+     */
+    uiManager:UIManager;
 
     constructor(position:[number,number,number], map:GameMap) {
         super('🦝', position, map);
@@ -28,6 +41,8 @@ class Player extends Entity {
             if (tile) tile.visible = true;
             return tile !== null && tile.passable && tile.art !== '+';
         }, 20);
+        this.uiManager = this.map.game.uiManager;
+        this.uiManager.updateControls(this, map);
     }
 
     handler(event:KeyboardEvent) {
@@ -65,19 +80,56 @@ class Player extends Entity {
             case "q":
                 doRefresh = this.step([0, 0, 1]);
                 break;
+            case "g":
+                if (this.tile && this.tile.garbage) {
+                    doRefresh = this.grabThing(this.tile.garbage);
+                }
+                break;
+            case "p":
+                doRefresh = this.dropThing();
+                break;
             default:
                 break;
         }
         if (doRefresh) {
-            this.net.broadcast({
-                requestType: "Updates",
-                updates: [{
-                    id: this.id,
-                    position: this.position
-                }]
-            });
-            this.map.refresh();
+            this.updateAndRefresh();
         }
+    }
+
+    /**
+     * Send out updates and refresh the display
+     */
+    updateAndRefresh() {
+        const updates:ThingUpdate[] = [{
+            id: this.id,
+            position: this.position
+        }];
+
+        while (this.otherThingsToUpdate.length > 0) {
+            const thing:Thing|undefined = this.otherThingsToUpdate.pop();
+            if (thing) {
+                const update:ThingUpdate = {
+                    id: thing.id,
+                    position: thing.position,
+                };
+                if (thing.hidden) {
+                    update.message = "status:hidden";
+                } else {
+                    update.message = "status:show";
+                }
+                updates.push(update);
+            }
+        }
+
+        this.net.broadcast({
+            requestType: "Updates",
+            sender: this.id,
+            updates: updates
+        });
+        
+        this.map.refresh();
+
+        this.uiManager.updateControls(this, this.map);
     }
 
     /**
@@ -86,7 +138,41 @@ class Player extends Entity {
     move(newPosition:[number, number, number]):boolean {
         const result = super.move(newPosition);
         this.position.forEach((x,i) => this.map.cameraPosition[i] = x);
+        this.uiManager.updateControls(this, this.map);
         return result;
+    }
+
+    /**
+     * Add some extra tracking to interactions
+     */
+    interact(otherEntity:Entity):(()=>void)|null {
+        this.otherThingsToUpdate.push(otherEntity);
+        return super.interact(otherEntity);
+    }
+
+    dropThing(): boolean {
+        if (this.holding) {
+            this.otherThingsToUpdate.push(this.holding);
+            this.uiManager.addMessageToLog(`You drop the ${this.holding.getName()}.`)
+        }
+        return super.dropThing();
+    }
+
+    grabThing(thingToGrab: Thing): boolean {
+        const result = super.grabThing(thingToGrab);
+        if (this.holding) {
+            this.otherThingsToUpdate.push(this.holding);
+            this.uiManager.addMessageToLog(`You pick up the ${this.holding.getName()}.`)
+        }
+        return result;
+    }
+
+    getName(lowerCase:boolean=true) {
+        if (lowerCase) {
+            return "you";
+        } else {
+            return "You";
+        }
     }
 
 }

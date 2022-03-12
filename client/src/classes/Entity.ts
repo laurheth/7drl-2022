@@ -65,7 +65,7 @@ class Entity extends Thing {
         }
 
         let postMove:(()=>void)|null = null;
-        if (newTile && newTile.entity) {
+        if (newTile && newTile.entity && newTile.entity !== this) {
             postMove = this.interact(newTile.entity);
         }
         
@@ -90,6 +90,9 @@ class Entity extends Thing {
                 otherEntity.position[2]
             ];
             if (otherEntity.move(getPushedTo)) {
+                if (otherEntity.tile && otherEntity.tile.visible) {
+                    this.map.game.uiManager.addMessageToLog(`${otherEntity.getName()} is pushed!`);
+                }
                 return null;
             }
         }
@@ -98,6 +101,15 @@ class Entity extends Thing {
             const tile:Tile|null = otherEntity.tile;
             const myTile:Tile|null = this.tile;
             if (tile && tile.passable && myTile && myTile.passable) {
+
+                if (otherEntity.tile && otherEntity.tile.visible) {
+                    if (this.getName() === "You") {
+                        this.map.game.uiManager.addMessageToLog(`${this.getName()} switch places with ${otherEntity.getName()}!`);
+                    } else {
+                        this.map.game.uiManager.addMessageToLog(`${this.getName()} switches places with ${otherEntity.getName(true)}!`);
+                    }
+                }
+
                 tile.removeThing(otherEntity);
                 return ()=>otherEntity.move(myTile.position);
             }

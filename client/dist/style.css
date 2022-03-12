@@ -6,8 +6,124 @@ html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}bo
 
 .visuallyHidden:not(:focus):not(:active) { position: absolute; width: 1px; height: 1px; margin: -1px;border: 0;padding: 0;white-space: nowrap;clip-path: inset(100%);clip: rect(00 0 0);overflow: hidden;}
 
-.display {
+html {
+    font-size: 62.5%;
+}
+
+body {
+    background: #000000;
+    color: #ffffff;
+    font-size: 1.8rem;
+}
+
+.wrapper {
+    width: 95%;
+    max-width: 1920px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     height: 100vh;
+    border-color: #933;
+    border-style: solid;
+    border-width: 0 2px;
+}
+
+.uiContainer {
+    display: grid;
+    grid-template-columns: 26rem auto;
+    grid-template-rows: auto 18rem;
+    height: 100vh;
+    border-radius: 5px;
+}
+
+.displayHolder {
+    position: relative;
+    grid-column: 2/3;
+    grid-row: 1/2;
+    overflow: hidden;
+    background: black;
+}
+
+.display {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    height: 100vmin;
+    width: 100vmin;
+    max-width: 920px;
+    max-height: 920px;
+}
+
+.controls {
+    grid-row: 1/3;
+    grid-column: 1/2;
+    padding: 1rem;
+    border-color: #933;
+    border-style: solid;
+    border-width: 0 2px 0 0;
+}
+
+.controls ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.controls ul li {
+    margin: 0.5rem 0;
+}
+
+.controls button,
+.controls select {
+    color: inherit;
+    background: inherit;
+    border: 2px solid goldenrod;
+    border-radius: 5px;
+    display: inline;
+    text-align: center;
+    transition: border 0.2s;
+    filter: drop-shadow(0 0 0 black);
+    width: 100%;
+}
+
+.controls button:hover,
+.constrols button:focus,
+.controls select:hover,
+.controls select:focus
+{
+    border: 2px solid red;
+    filter: drop-shadow(0 0 6px red);
+}
+
+.controls select {
+    margin: 0.5rem 0;
+}
+
+.controls select option {
+    color: black;
+    background: #ccc;
+}
+
+.log {
+    grid-row: 2/3;
+    grid-column: 2/3;
+    border-color: #933;
+    border-style: solid;
+    border-width: 2px 0 0 0;
+    padding: 1rem;
+    overflow-y: scroll;
+}
+
+.log ol {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.log ol li {
+    margin: 0.5rem 0;
 }
 
 .pumpkin-tile {
@@ -75,10 +191,17 @@ html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}bo
 }
 
 /* Make twemoji's fit */
-img.emoji {
+.display img.emoji {
     display: block;
     height: 1em;
     width: 1em;
     margin: 0 .05em 0 .1em;
     filter: drop-shadow(0 0 3px black);
- } 
+}
+
+.controls img.emoji {
+    height: 1em;
+    width: 1em;
+    margin: 0 .05em 0 .1em;
+    vertical-align: -0.1em;
+}

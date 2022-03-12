@@ -27,7 +27,7 @@ const garbages:{[key:string]:GarbageFact} = {
     "unexplained moistness": {
         art: "💦"
     },
-    "discared pizza": {
+    "old pizza": {
         art: "🍕"
     },
     "glitter": {

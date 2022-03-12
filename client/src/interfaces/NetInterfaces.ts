@@ -9,6 +9,7 @@
 
 export interface ThingUpdateBundle {
     requestType: "Updates";
+    sender?:number;
     updates: ThingUpdate[];
 }
 
@@ -34,6 +35,7 @@ export interface SessionDetails {
     hash: number;
     id: number;
     entities: EntityDetails[];
+    creatorId?: number;
 }
 
 /**

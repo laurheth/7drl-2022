@@ -159,6 +159,9 @@ wss.on('connection', function connection(ws) {
                     const newGame = new Game(message.name, message.seed, message.hash, message.entities);
                     games[gameId] = newGame;
                     myGameId = gameId;
+                    if (message.creatorId) {
+                        myEntityId = message.creatorId;
+                    }
                     newGame.clients.push(ws);
                 } else {
                     console.log("Error, attempted new session while missing details. " + messageString);
@@ -181,7 +184,10 @@ wss.on('connection', function connection(ws) {
                             const entity = game.entities[update.id];
                             if (entity) {
                                 if (update.message) {
-                                    entity.status = message.message;
+                                    if (update.message.indexOf("status:") === 0) {
+                                        const status = update.message.split(":")[1];
+                                        entity.status = status;
+                                    }
                                 }
                                 if (update.position) {
                                     entity.position = update.position;

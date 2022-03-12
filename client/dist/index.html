@@ -13,7 +13,33 @@
     <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div id="display" class="display"></div>
+    <div class="wrapper">
+        <div class="uiContainer">
+            <div class="displayHolder">
+                <div id="display" class="display" aria-hidden="true"></div>
+            </div>
+            <div id="controls" class="controls">
+                <h1>Garbage Quest</h1>
+                <h2>Holding :</h2>
+                <p id="heldItem">Nothing right now</p>
+                <h2>Actions :</h2>
+                <ul id="actionList">
+                </ul>
+                <h2>Quick chat :</h2>
+                <form id="chatForm">
+                    <label for="quickChat" class="visuallyHidden">Choose a phrase to send:</label>
+                    <select name="quickChat" id="quickChatSelect">
+                    </select>
+                    <button type="submit">Send message</button>
+                </form>
+            </div>
+            <!-- Log messages go here -->
+            <div class="log">
+                <ol id="log">
+                </ol>
+            </div>
+        </div>
+    </div>
     <script src="bundle.js"></script>
 </body>
 </html>

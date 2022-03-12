@@ -108,6 +108,9 @@ class GameMap {
                         newThing.setName(entity.name);
                     }
                     newThing.setId(entity.id);
+                    if (entity.status && entity.status === "hidden") {
+                        newThing.hideMe;
+                    }
                 }
             })
         } else {

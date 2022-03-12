@@ -4,6 +4,7 @@ import Net from "./NetHandler";
 import { ThingUpdateBundle, ThingUpdate, SessionDetails, GameRequest, GameMessage, EntityDetails } from "../interfaces/NetInterfaces";
 import Thing from "./Thing";
 import Entity from "./Entity";
+import UIManager from "./UIManager";
 
 /**
  * Bundles up the large scale game logic
@@ -25,6 +26,11 @@ class GameManager {
      */
     net:Net;
 
+    /**
+     * UI Manager
+     */
+    uiManager:UIManager;
+
     constructor() {
         this.display = new GameDisplay(30, 30);
         this.net = new Net(this, ()=>this.onConnected());
@@ -32,6 +38,7 @@ class GameManager {
         this.net.addCallback("GameList", this.onGameList.bind(this));
         this.net.addCallback("Updates", this.onUpdates.bind(this));
         this.net.addCallback("Spawn", this.onSpawn.bind(this));
+        this.uiManager = new UIManager(this.net, this);
     }
 
     /**
@@ -83,7 +90,7 @@ class GameManager {
                         id: thing.id,
                         position: thing.position,
                         kind: thing.kind,
-                        name: thing.getName(),
+                        name: (thing.kind === "player") ? thing.name : thing.getName(),
                         art: (thing.kind === "player") ? thing.art : undefined
                     })
                 }
@@ -93,7 +100,8 @@ class GameManager {
                     seed: this.gameMap.seed,
                     hash: this.gameMap.hashValue,
                     id: this.gameMap.nextThingId,
-                    entities: entityList
+                    entities: entityList,
+                    creatorId: this.gameMap.player?.id ? this.gameMap.player.id : 0
                 })
             }
         }
@@ -106,6 +114,14 @@ class GameManager {
         if (message && message.requestType === "Updates") {
             // This is a set of updates. Apply them all in order.
             const updates:ThingUpdate[] = message.updates;
+            let sender:Thing|null = null;
+            let addToLog = false;
+            if (message.sender && this.gameMap) {
+                sender = this.gameMap.things[message.sender];
+                if (sender.tile && sender.tile.visible) {
+                    addToLog = true;
+                }
+            }
             updates.forEach(update => {
                 if (this.gameMap) {
                     let thing:Thing = this.gameMap.things[update.id];
@@ -114,16 +130,31 @@ class GameManager {
                     }
                     if (update.message) {
                         if (update.message === "disconnected") {
-                            console.log("Friendo disconnected.");
+                            this.uiManager.addMessageToLog(thing.getName() + " disconnected.");
                             thing.die();
                             if (this.gameMap.things[thing.id] === thing) {
                                 delete this.gameMap.things[thing.id];
                             }
+                        } else if (update.message === "status:hidden") {
+                            if (addToLog && sender) {
+                                this.uiManager.addMessageToLog(`${sender.getName()} picks up the ${thing.getName()}.`);
+                            }
+                            thing.hideMe();
+                        } else if (update.message === "status:show") {
+                            if (addToLog && sender) {
+                                this.uiManager.addMessageToLog(`${sender.getName()} drops the ${thing.getName()}.`);
+                            }
+                            thing.hidden = false;
+                        } else if (sender && update.message.indexOf("message:") === 0) {
+                            this.uiManager.displayChatMessage(update.message, sender);
                         }
                     }
                 }
             });
             this.gameMap?.refresh();
+            if (this.gameMap?.player) {
+                this.uiManager.updateControls(this.gameMap.player, this.gameMap);
+            }
         }
     }
 
