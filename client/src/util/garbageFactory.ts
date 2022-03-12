@@ -41,7 +41,7 @@ const garbages:{[key:string]:GarbageFact} = {
     },
     "bad album": {
         art: "💿"
-    }
+    },
 };
 
 const kinds:string[] = [];

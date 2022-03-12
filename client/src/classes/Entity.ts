@@ -7,6 +7,9 @@ import Tile from "./Tile";
  */
 class Entity extends Thing {
 
+    onInteract:((actor:Entity)=>void)|undefined;
+    pushable:boolean = false;
+
     constructor(art:string, position:[number,number,number], map:GameMap) {
         super(art, position, map);
         this.kind = "entity";
@@ -79,6 +82,18 @@ class Entity extends Thing {
      * Interact with someone else.
      */
     interact(otherEntity:Entity):(()=>void)|null {
+        // First try to push
+        if (otherEntity.pushable) {
+            const getPushedTo:[number, number, number] = [
+                2 * otherEntity.position[0] - this.position[0],
+                2 * otherEntity.position[1] - this.position[1],
+                otherEntity.position[2]
+            ];
+            if (otherEntity.move(getPushedTo)) {
+                return null;
+            }
+        }
+        // If that fails, switch spots
         if (this.kind === "player" && !this.falling) {
             const tile:Tile|null = otherEntity.tile;
             const myTile:Tile|null = this.tile;
@@ -86,6 +101,9 @@ class Entity extends Thing {
                 tile.removeThing(otherEntity);
                 return ()=>otherEntity.move(myTile.position);
             }
+        }
+        if (otherEntity.onInteract) {
+            otherEntity.onInteract(this);
         }
         return null;
     }

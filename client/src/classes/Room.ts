@@ -1,4 +1,5 @@
 import { Random } from "roguelike-pumpkin-patch";
+import { furniture, furnitureFactory } from "../util/furniture";
 import GameMap from "./GameMap";
 import Tile from "./Tile";
 
@@ -29,6 +30,8 @@ class Room {
         const colors = ['green','blue','purple'];
         const color = this.random.getRandomElement(colors);
 
+        const furnitureSpots:Tile[] = [];
+
         for (let x=0; x<=width; x++) {
             for (let y=0; y<=height; y++) {
                 let newTile:Tile;
@@ -56,9 +59,19 @@ class Room {
                     newTile = new Tile(
                         thisPos, '.', ['floor', 'room'], true, false, true
                     );
+                    furnitureSpots.push(newTile);
                 }
                 this.map.mapData[thisKey] = newTile;
             }
+        }
+
+        const furnitureOptions = [...furniture];
+        while (furnitureOptions.length > 0 && furnitureSpots.length > 10) {
+            const furnitureIndex = this.random.getNumber(0, furnitureOptions.length - 1, true);
+            const option = furnitureOptions.splice(furnitureIndex, 1)[0];
+            const tileIndex = this.random.getNumber(0, furnitureSpots.length - 1, true);
+            const spot = furnitureSpots.splice(tileIndex, 1)[0];
+            furnitureFactory(option.name, spot.position, this.map);
         }
     }
 
