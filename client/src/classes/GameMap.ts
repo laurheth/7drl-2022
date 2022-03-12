@@ -54,6 +54,11 @@ class GameMap {
     cameraPosition:[number, number, number];
 
     /**
+     * Player who is experiencing this world.
+     */
+    player:Player|undefined;
+
+    /**
      * Collection of things on the map
      */
     things:{[key:number]:Thing}
@@ -150,7 +155,6 @@ class GameMap {
      * Refresh the view
      */
     refresh() {
-        console.log("cam", this.cameraPosition);
         this.game.display.draw(this, ...this.cameraPosition);
     }
 

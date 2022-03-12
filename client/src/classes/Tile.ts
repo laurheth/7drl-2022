@@ -28,6 +28,11 @@ class Tile {
     classList:string[];
 
     /**
+     * Classlist last time the tile was seen
+     */
+    lastSeenClassList:string[];
+
+    /**
      * Hide the base art of the tile.
      */
     hideBaseArt:boolean;
@@ -56,8 +61,8 @@ class Tile {
 
     constructor(position:[number, number, number], art:string, classList:string[], passable:boolean, replaceable = true, hideBaseArt:boolean = false) {
         this.art = art;
-        this.lastSeen = art;
-        this.visible = true;
+        this.lastSeen = " ";
+        this.visible = false;
         this.entity = null;
         this.garbage = null;
         this.otherShit = [];
@@ -66,6 +71,7 @@ class Tile {
         this.position = position;
         this.classList = classList;
         this.hideBaseArt = hideBaseArt;
+        this.lastSeenClassList = [];
     }
 
     /**
@@ -74,27 +80,31 @@ class Tile {
     getArt():string {
         if (this.visible) {
             if (this.entity) {
-                return this.entity.getArt();
+                this.lastSeen = this.entity.getArt();
             } else if (this.garbage) {
-                return this.garbage.getArt();
+                this.lastSeen = this.garbage.getArt();
             } else if (this.otherShit.length > 0) {
-                return this.otherShit[0].getArt();
+                this.lastSeen = this.otherShit[0].getArt();
+            } else {
+                this.lastSeen = this.art;
             }
-            return this.art;
-        } else {
-            return this.lastSeen;
         }
+        return this.lastSeen;
     }
 
     /**
      * Get the class list of the tile.
      */
     getClassList():string[] {
-        const classList = [...this.classList];
-        if (this.hideBaseArt) {
-            classList.push("hideText");
+        if (this.visible) {
+            this.lastSeenClassList = [...this.classList];
+            if (this.hideBaseArt) {
+                this.lastSeenClassList.push("hideText");
+            }
+            return this.lastSeenClassList;
+        } else {
+            return [...this.lastSeenClassList, "unseen"];
         }
-        return classList;
     }
 
     /**

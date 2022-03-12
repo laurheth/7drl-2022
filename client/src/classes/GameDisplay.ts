@@ -1,5 +1,6 @@
-import { Display } from "roguelike-pumpkin-patch";
+import { Display, FOV } from "roguelike-pumpkin-patch";
 import GameMap from "./GameMap";
+import Tile from "./Tile";
 
 let twemoji:{parse:(str:string)=>string};
 try {
@@ -16,10 +17,13 @@ class GameDisplay {
     height = 20;
     display:Display;
 
+    seen:Tile[];
+
     // Game display constructor
     constructor(width=20, height=20) {
         this.height = height;
         this.width = width;
+        this.seen = [];
 
         // First, select the target element you want the display to be within
         const target = document.getElementById("display");
@@ -58,6 +62,20 @@ class GameDisplay {
         const xx = x - Math.floor(this.width / 2);
         const yy = y - Math.floor(this.height / 2);
 
+        // Unsee what we have seen.
+        while (this.seen.length > 0) {
+            const tile = this.seen.pop();
+            if (tile) {
+                tile.visible = false;
+            }
+        }
+
+        if (map.player) {
+            map.player.fov.look([x, y, z]);
+        } else {
+            return;
+        }
+
         for (let i = 0; i < this.width; i++) {
             for (let j = 0; j < this.height; j++) {
                 const tile = map.getTile(i + xx, j + yy, z);
@@ -73,6 +91,10 @@ class GameDisplay {
                 }
                 catch {
                     // Eh, stick with default
+                }
+
+                if (tile?.visible) {
+                    this.seen.push(tile);
                 }
 
                 this.display.setTile(i, j, {

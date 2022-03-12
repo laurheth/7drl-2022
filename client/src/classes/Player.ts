@@ -1,3 +1,4 @@
+import { FOV } from "roguelike-pumpkin-patch";
 import Entity from "./Entity";
 import GameMap from "./GameMap";
 import NetHandler from "./NetHandler";
@@ -9,12 +10,24 @@ class Player extends Entity {
      */
     net:NetHandler;
 
+    /**
+     * FOV handler
+     */
+    fov: FOV;
+
     constructor(position:[number,number,number], map:GameMap) {
         super('🦝', position, map);
         window.addEventListener("keydown", (event:KeyboardEvent) => this.handler(event));
         map.cameraPosition = this.position;
         this.net = map.game.net;
         this.kind = "player";
+        this.map.player = this;
+        const me = this;
+        this.fov = new FOV((position:number[]):boolean => {
+            const tile = me.map.getTile(position[0], position[1], me.position[2]);
+            if (tile) tile.visible = true;
+            return tile !== null && tile.passable && tile.art !== '+';
+        }, 20);
     }
 
     handler(event:KeyboardEvent) {
