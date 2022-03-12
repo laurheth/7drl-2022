@@ -34,7 +34,19 @@ html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}bo
     /* background-image: url(./art/doorOpen.png), url(./art/badConcrete.png); */
     background-image: url(./art/doorClosed.png);
     background-blend-mode: normal;
+    background-size: cover;
 }
+
+.stairsUp {
+    background-image: url(./art/stairsUp.png), url(./art/badConcrete.png);
+    background-size: cover;
+}
+
+.stairsDown {
+    background-image: url(./art/stairsDown.png), url(./art/badConcrete.png);
+    background-size: cover;
+}
+
 .green {
     background-color: green;
 }

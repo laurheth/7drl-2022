@@ -377,10 +377,17 @@ class GameMap {
                         break;
                     case '.':
                         hideBase = true;
-                    case '>':
-                    case '<':
                     case '+':
                         classList.push('floor');
+                        break;
+                    case '>':
+                        classList.push('stairsDown');
+                        hideBase = true;
+                        break;
+                    case '<':
+                        classList.push('stairsUp');
+                        hideBase = true;
+                        break;
                 }
                 const newTile:Tile = new Tile([x - xOffset, y - yOffset, z], char, classList, char !== '#', replaceable, hideBase);
                 this.mapData[this.locationKey(x - xOffset, y - yOffset, z)] = newTile;
