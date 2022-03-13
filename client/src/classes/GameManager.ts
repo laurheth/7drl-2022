@@ -33,23 +33,37 @@ class GameManager {
 
     constructor() {
         this.display = new GameDisplay(30, 30);
-        this.net = new Net(this, ()=>this.onConnected());
+        this.net = new Net(this);
         this.net.addCallback("SessionDetails", this.onSessionDetails.bind(this));
         this.net.addCallback("GameList", this.onGameList.bind(this));
         this.net.addCallback("Updates", this.onUpdates.bind(this));
         this.net.addCallback("Spawn", this.onSpawn.bind(this));
         this.uiManager = new UIManager(this.net, this);
+        this.uiManager.showStartMenu();
+    }
+
+    /**
+     * Connect to server...
+     */
+    tryToConnect(callback:()=>void) {
+        if (this.net.ws) {
+            // Already connected.
+            this.onConnected(callback);
+        } else {
+            this.net.init(callback);
+        }
     }
 
     /**
      * What to do when we first connect
      */
-    onConnected() {
+    onConnected(callback:()=>void) {
+        callback();
         // Request the list of games
-        this.net.broadcast({
-            requestType:"Request",
-            details:"games"
-        })
+        // this.net.broadcast({
+        //     requestType:"Request",
+        //     details:"games"
+        // })
     }
 
     /**
@@ -69,41 +83,39 @@ class GameManager {
      */
     onGameList(message?:GameMessage) {
         if (message && message.requestType === "GameList") {
+            this.uiManager.hideModal();
             const gameList = message.games;
-            // A game exists! Join it.
-            if (gameList.length > 0 && gameList[0].id >= 0) {
-                this.net.broadcast({
-                    requestType:"Request",
-                    details:"join",
-                    id: gameList[0].id,
-                    name:"howdy",
-                    art:Math.floor(100*Math.random())
-                })
-            } else {
-                // Otherwise, make a game and send the details off
-                this.gameMap = new GameMap("Cool map", Date.now(), 0, this);
-                this.gameMap.refresh();
-                const entityList:EntityDetails[] = [];
-                for (const key in this.gameMap.things) {
-                    const thing = this.gameMap.things[key];
-                    entityList.push({
-                        id: thing.id,
-                        position: thing.position,
-                        kind: thing.kind,
-                        name: (thing.kind === "player") ? thing.name : thing.getName(),
-                        art: (thing.kind === "player") ? thing.art : undefined
-                    })
-                }
-                this.net.broadcast({
-                    requestType: "SessionDetails",
-                    name: this.gameMap.name,
-                    seed: this.gameMap.seed,
-                    hash: this.gameMap.hashValue,
-                    id: this.gameMap.nextThingId,
-                    entities: entityList,
-                    creatorId: this.gameMap.player?.id ? this.gameMap.player.id : 0
-                })
-            }
+            this.uiManager.showGameList(gameList);
+        }
+    }
+
+    /**
+     * Create a new game
+     */
+    createNewGame(multiplayer:boolean = true) {
+        this.gameMap = new GameMap("Cool map", Date.now(), 0, this);
+        this.gameMap.refresh();
+        const entityList:EntityDetails[] = [];
+        for (const key in this.gameMap.things) {
+            const thing = this.gameMap.things[key];
+            entityList.push({
+                id: thing.id,
+                position: thing.position,
+                kind: thing.kind,
+                name: (thing.kind === "player") ? thing.name : thing.getName(),
+                art: (thing.kind === "player") ? thing.art : undefined
+            })
+        }
+        if (multiplayer) {
+            this.net.broadcast({
+                requestType: "SessionDetails",
+                name: this.gameMap.name,
+                seed: this.gameMap.seed,
+                hash: this.gameMap.hashValue,
+                id: this.gameMap.nextThingId,
+                entities: entityList,
+                creatorId: this.gameMap.player?.id ? this.gameMap.player.id : 0
+            })
         }
     }
 

@@ -1,3 +1,4 @@
+import { GameSummary } from "../interfaces/NetInterfaces";
 import { quickChats } from "../util/quickChats";
 import GameManager from "./GameManager";
 import GameMap from "./GameMap";
@@ -286,6 +287,101 @@ class UIManager {
             buttonActions: undefined,
         });
     }
+    
+    /**
+     * Show the start menu!
+     */
+    showStartMenu() {
+        const header = document.createElement("h2");
+        header.innerText = "Garbage Quest";
+        const content = document.createElement("p");
+        content.innerText = "Welcome to garbage quest!";
+        this.buildModal({
+            elements: [header, content],
+            buttons: [
+                "Join a game",
+                "Start a new public game",
+                "Start a solo game"
+            ],
+            buttonActions: [
+                () => {
+                    this.showConnectingDialog();
+                    this.game.tryToConnect(()=>{
+                        this.game.net.broadcast({
+                            requestType:"Request",
+                            details:"games"
+                        })
+                    });
+                },
+                () => {
+                    this.showConnectingDialog();
+                    this.game.tryToConnect(()=>{
+                        this.game.createNewGame(true);
+                        this.hideModal();
+                    });
+                },
+                () => {
+                    this.game.createNewGame(false);
+                    this.hideModal();
+                }
+            ],
+        });
+    }
+
+    /**
+     * Connecting.... dialog
+     */
+    showConnectingDialog() {
+        const elements:HTMLElement[] = [];
+        const header = document.createElement("h2");
+        header.innerText = "Connecting...";
+        this.buildModal({
+            elements: [header],
+            buttons: ["Cancel"],
+            buttonActions: [() => {
+                this.game.net.cancelInit();
+                this.showStartMenu();
+            }],
+        });
+    }
+
+    /**
+     * Show the list of available games
+     */
+    showGameList(games:GameSummary[]) {
+        const buttons:string[] = [];
+        const buttonActions:(()=>void)[] = [];
+        const header = document.createElement("h2");
+        if (games.length > 0) {
+            header.innerText = "Join a game!";
+            games.forEach(game=>{
+                if (game && game.name && game.players && game.id) {
+                    buttons.push(`${game.name} (${game.players} players)`);
+                    buttonActions.push(() => {
+                        this.game.net.broadcast({
+                            requestType:"Request",
+                            details:"join",
+                            id: game.id,
+                            name:"Howdy",
+                            art:Math.floor(100*Math.random())
+                        });
+                        this.hideModal();
+                    });
+                }
+            });
+        } else {
+            header.innerText = "There are no games currently available.";
+        }
+        buttons.push("Return to main menu");
+        buttonActions.push(() => {
+            this.showStartMenu();
+        });
+        this.buildModal({
+            elements: [header],
+            buttons: buttons,
+            buttonActions: buttonActions,
+        })
+    }
 
     /**
      * Build and show a modal!
@@ -317,7 +413,7 @@ class UIManager {
         elements.push(buttonBox);
 
         elements.forEach(element => this.modal.appendChild(element));
-        setTimeout(()=>this.revealModal(),1000);
+        this.revealModal();
     }
     
 

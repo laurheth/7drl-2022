@@ -7,7 +7,7 @@ import { ThingUpdateBundle, ThingUpdate, SessionDetails, GameRequest, GameMessag
  * Class to handle the websocket communications
  */
 class NetHandler {
-    ws:WebSocket|undefined;
+    ws:WebSocket|null;
     game:GameManager;
     receivedBuffer:ThingUpdate[];
     callbacks:{[key:string]:Array<(message?:GameMessage)=>void>};
@@ -15,17 +15,17 @@ class NetHandler {
         this.game = game;
         this.receivedBuffer = [];
         this.callbacks = {};
+        this.ws = null;
         if (connectedCallback) {
             this.addCallback("open", connectedCallback);
         }
-        this.init();
     }
 
     /**
      * Connect the websocket and set up listeners.
      * TODO: probably rewrite this lol
      */
-    async init() {
+    async init(callback:()=>void) {
         const url = new URL(window.location.href);
         const me = this;
         const HOST = (url.hostname.includes("localhost") || url.hostname.includes("127.0.0.1")) ? "ws:localhost:3000" : "";
@@ -37,12 +37,19 @@ class NetHandler {
         });
         
         ws.addEventListener("open", function open() {
+            callback();
             me.runCallbacks("open");
             ws.addEventListener("close", function close() {
                 me.runCallbacks("close");
                 ws.removeEventListener("close", close);
+                me.ws = null;
             })
         });
+    }
+
+    cancelInit() {
+        this.ws?.close();
+        this.ws = null;
     }
 
     /**

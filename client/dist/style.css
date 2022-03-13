@@ -167,7 +167,9 @@ body {
 }
 
 .modal .buttonBox {
-    /* TODO */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .modal button {
@@ -180,6 +182,7 @@ body {
     transition: border 0.2s, filter 0.2s;
     filter: drop-shadow(0 0 0 black);
     padding: 0.5rem 1rem;
+    margin: 1rem 0 0 0;
 }
 
 .modal button:hover,
