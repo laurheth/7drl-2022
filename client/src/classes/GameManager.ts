@@ -189,7 +189,24 @@ class GameManager {
                             }
                             thing.hidden = false;
                         } else if (sender && update.message.indexOf("message:") === 0) {
-                            this.uiManager.displayChatMessage(update.message, sender);
+                            let displayMessage = true;
+
+                            if (this.gameMap.player?.position && sender.position) {
+                                const pos1 = this.gameMap.player.position;
+                                const pos2 = sender.position;
+                                let distance = 0;
+                                for (let i=0; i<3;i++) {
+                                    const factor = (i >= 2) ? 5 : 1;
+                                    distance += factor * Math.abs(pos1[i] - pos2[i]);
+                                }
+                                if (distance > 25) {
+                                    displayMessage = false;
+                                }
+                            } 
+
+                            if (displayMessage) {
+                                this.uiManager.displayChatMessage(update.message, sender);
+                            }
                         }
                     }
                 }

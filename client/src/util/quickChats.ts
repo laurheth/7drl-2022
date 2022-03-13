@@ -6,4 +6,6 @@ export const quickChats:string[] = [
     "Lets put this garbage down the chute!",
     "Follow me!",
     "Rock and stone!",
+    "I am the garbage!",
+    "Rolling in the garbage laughing!"
 ];
