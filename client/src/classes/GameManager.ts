@@ -5,6 +5,7 @@ import { ThingUpdateBundle, ThingUpdate, SessionDetails, GameRequest, GameMessag
 import Thing from "./Thing";
 import Entity from "./Entity";
 import UIManager from "./UIManager";
+import { randomStreet } from "../../../server/nameGeneration";;
 
 /**
  * Bundles up the large scale game logic
@@ -38,6 +39,7 @@ class GameManager {
         this.net.addCallback("GameList", this.onGameList.bind(this));
         this.net.addCallback("Updates", this.onUpdates.bind(this));
         this.net.addCallback("Spawn", this.onSpawn.bind(this));
+        this.net.addCallback("NameAssignment", this.onNameAssignment.bind(this));
         this.uiManager = new UIManager(this.net, this);
         this.uiManager.showStartMenu();
     }
@@ -59,11 +61,6 @@ class GameManager {
      */
     onConnected(callback:()=>void) {
         callback();
-        // Request the list of games
-        // this.net.broadcast({
-        //     requestType:"Request",
-        //     details:"games"
-        // })
     }
 
     /**
@@ -90,10 +87,22 @@ class GameManager {
     }
 
     /**
+     * Got a name assignment message
+     */
+    onNameAssignment(message?:GameMessage) {
+        if (message && message.requestType === "NameAssignment") {
+            if (this.gameMap) {
+                this.gameMap.name = message.gameName;
+                this.gameMap.player?.setName(message.name);
+            }
+        }
+    }
+
+    /**
      * Create a new game
      */
     createNewGame(multiplayer:boolean = true) {
-        this.gameMap = new GameMap("Cool map", Date.now(), 0, this);
+        this.gameMap = new GameMap(`${Math.floor(Math.random() * 100 + 1)} ${randomStreet()}`, Date.now(), 0, this);
         this.gameMap.refresh();
         const entityList:EntityDetails[] = [];
         for (const key in this.gameMap.things) {
@@ -182,6 +191,7 @@ class GameManager {
                 const name = (message.name) ? message.name : "Mystery Friend";
                 newThing = new Entity(art, message.position, this.gameMap);
                 newThing.setName(name);
+                this.uiManager.addMessageToLog(`${name} has joined the game.`);
             } else {
                 newThing = new Thing('&', message.position, this.gameMap);
             }

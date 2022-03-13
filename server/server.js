@@ -3,6 +3,7 @@
 // Some server setup
 const express = require('express');
 const { Server } = require('ws');
+const { getRandomName } = require('./nameGeneration');
 
 const PORT = process.env.PORT || 3000;
 
@@ -109,7 +110,7 @@ wss.on('connection', function connection(ws) {
                 } else if (message.details === "join") {
                     // A new Player wants to join the game!
                     myGameId = message.id;
-                    const name = message.name ? message.name : "Mystery Friend";
+                    const name = getRandomName();//message.name ? message.name : "Mystery Friend";
                     const artNum = (Number.isFinite(message.art) && message.art >= 0) ? message.art : 0;
 
                     const emojis = ["🙂","😀","😁","😂","🤣","😃","😄","😅","😆","😉","😊","😋","😎","😍","😘","🥰","😶","😏","🤐","😴","😌","🤑","😤","🤪","🥴","🤠","🧐","💀","👻","😺","🐵","🐶","🐺","🦊","🦝","🐮","🐗","🐭","🐹","🐰","🐻","🐼","🐸","🦓","🐴","🦄","🐔","🐲","🐌","🐦"];
@@ -156,13 +157,19 @@ wss.on('connection', function connection(ws) {
             case "SessionDetails":
                 gameId++;
                 if (message.name, message.seed, message.hash, message.entities) {
-                    const newGame = new Game(message.name, message.seed, message.hash, message.entities);
+                    const gameName = `${Math.floor(Math.random() * 100 + 1)} ${randomStreet()}`;
+                    const newGame = new Game(gameName, message.seed, message.hash, message.entities);
                     games[gameId] = newGame;
                     myGameId = gameId;
                     if (message.creatorId) {
                         myEntityId = message.creatorId;
                     }
                     newGame.clients.push(ws);
+                    ws.send(JSON.stringify({
+                        requestType: "NameAssignment",
+                        name: getRandomName(),
+                        gameName: gameName
+                    }));
                 } else {
                     console.log("Error, attempted new session while missing details. " + messageString);
                 }

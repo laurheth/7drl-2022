@@ -5,6 +5,7 @@ import GameMap from "./GameMap";
 import NetHandler from "./NetHandler";
 import { ThingUpdate } from "../interfaces/NetInterfaces";
 import UIManager from "./UIManager";
+import { getRandomName } from "../../../server/nameGeneration";;
 
 class Player extends Entity {
 
@@ -23,6 +24,8 @@ class Player extends Entity {
      */
     otherThingsToUpdate:Thing[] = [];
 
+    bonusMessages:ThingUpdate[] = [];
+
     /**
      * UI Manager
      */
@@ -34,6 +37,7 @@ class Player extends Entity {
         map.cameraPosition = this.position;
         this.net = map.game.net;
         this.kind = "player";
+        this.name = getRandomName();
         this.map.player = this;
         const me = this;
         this.fov = new FOV((position:number[]):boolean => {
@@ -115,11 +119,18 @@ class Player extends Entity {
                 };
                 if (thing.hidden) {
                     update.message = "status:hidden";
-                } else if (this.justDropped) {
+                } else if (thing.justDropped) {
                     update.message = "status:show";
-                    this.justDropped = false;
+                    thing.justDropped = false;
                 }
                 updates.push(update);
+            }
+        }
+
+        while (this.bonusMessages.length > 0) {
+            const bonusMessage = this.bonusMessages.shift();
+            if (bonusMessage) {
+                updates.unshift(bonusMessage);
             }
         }
 
@@ -149,6 +160,10 @@ class Player extends Entity {
      */
     interact(otherEntity:Entity):(()=>void)|null {
         this.otherThingsToUpdate.push(otherEntity);
+        this.bonusMessages.push({
+            id: this.id,
+            position: otherEntity.position
+        });
         return super.interact(otherEntity);
     }
 
@@ -197,6 +212,16 @@ class Player extends Entity {
             }
         }
         return chutePosition;
+    }
+
+    /**
+     * Communicate that a door has been opened
+     */
+    sendDoorMessage(position: [number, number, number]): void {
+        this.bonusMessages.push({
+            id: this.id,
+            position: position
+        });
     }
 
 }

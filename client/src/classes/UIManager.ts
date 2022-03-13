@@ -1,4 +1,5 @@
 import { GameSummary } from "../interfaces/NetInterfaces";
+import { getRandomName } from "../../../server/nameGeneration";
 import { quickChats } from "../util/quickChats";
 import GameManager from "./GameManager";
 import GameMap from "./GameMap";
@@ -362,8 +363,8 @@ class UIManager {
                             requestType:"Request",
                             details:"join",
                             id: game.id,
-                            name:"Howdy",
-                            art:Math.floor(100*Math.random())
+                            name: getRandomName(),
+                            art: Math.floor(100*Math.random())
                         });
                         this.hideModal();
                     });

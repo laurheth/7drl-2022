@@ -48,6 +48,9 @@ class Entity extends Thing {
             newTile.classList.splice(index, 1);
             newTile.classList.push('doorOpen');
 
+            // Maybe send a door message?
+            this.sendDoorMessage(newTile.position);
+
             const me = this;
             // close the door behind you automatically
             const interval = window.setInterval(function closeDoor() {
@@ -122,6 +125,11 @@ class Entity extends Thing {
 
     canFitHere(tile:Tile):boolean {
         return tile && tile.passable && !tile.entity;
+    }
+
+    // Stub for Player to use
+    sendDoorMessage(position:[number, number, number]):void {
+
     }
 }
 

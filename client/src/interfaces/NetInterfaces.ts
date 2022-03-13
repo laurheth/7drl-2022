@@ -84,7 +84,13 @@ export interface Spawn {
     position: [number, number, number];
 }
 
+export interface NameAssignment {
+    requestType: "NameAssignment";
+    name: string;
+    gameName: string;
+}
+
 /**
  * Generic message
  */
-export type GameMessage = GameRequest | GameList | SessionDetails | ThingUpdateBundle | Spawn | JoinRequest;
+export type GameMessage = GameRequest | GameList | SessionDetails | ThingUpdateBundle | Spawn | JoinRequest | NameAssignment;
