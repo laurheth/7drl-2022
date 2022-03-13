@@ -214,6 +214,10 @@ class GameMap {
         if (!this.gameHasBeenWon && this.haveWon()) {
             this.gameHasBeenWon = true;
             this.game.uiManager.showWinModal();
+            this.game.net.broadcast({
+                requestType:"Request",
+                details:"gameWon"
+            })
         }
     }
 

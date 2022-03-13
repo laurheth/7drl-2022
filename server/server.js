@@ -84,6 +84,12 @@ const client = redis.createClient({
 
 // Function to add games to redis
 const addToRedis = (id, gameToAdd) => {
+    // Don't store won games
+    if (gameToAdd.hasBeenWon) {
+        client.del(`game${id}`);
+        client.sRem("games", id);
+        return;
+    }
     client.sAdd("games", id);
     const entities = gameToAdd.getEntityList(true);
     const key = `game${id}`;
@@ -210,9 +216,18 @@ wss.on('connection', function connection(ws) {
                                     client.del(`game${key}`);
                                 }
                                 continue;
-                            } else {
+                            } else if (!game.hasBeenWon) {
                                 game.emptySince += 60000; // give the viewer a minute to figure shit out
                             }
+                        }
+
+                        if (game.hasBeenWon) {
+                            if (redisConnected) {
+                                client.sRem("games", key);
+                                client.del(`game${key}`);
+                            }
+                            // Don't show won games. Let them drift into the night.
+                            continue;
                         }
 
                         gameList.push({
@@ -269,6 +284,11 @@ wss.on('connection', function connection(ws) {
                         game.clients.push(ws);
                     } else {
                         console.log("Error, not a valid game. " + messageString);
+                    }
+                } else if (message.details === "gameWon") {
+                    const game = games[myGameId];
+                    if (game) {
+                        game.hasBeenWon = true;
                     }
                 }
                 break;
