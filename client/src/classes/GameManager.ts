@@ -32,6 +32,11 @@ class GameManager {
      */
     uiManager:UIManager;
 
+    /**
+     * Server id we are connected to
+     */
+    serverId:number = -1;
+
     constructor() {
         this.display = new GameDisplay(30, 30);
         this.net = new Net(this);
@@ -40,6 +45,7 @@ class GameManager {
         this.net.addCallback("Updates", this.onUpdates.bind(this));
         this.net.addCallback("Spawn", this.onSpawn.bind(this));
         this.net.addCallback("NameAssignment", this.onNameAssignment.bind(this));
+        this.net.addCallback("close", this.onConnectionLost.bind(this));
         this.uiManager = new UIManager(this.net, this);
         this.uiManager.showStartMenu();
     }
@@ -64,6 +70,15 @@ class GameManager {
     }
 
     /**
+     * What to do if the connection was lost
+     */
+    onConnectionLost() {
+        if (this.serverId >= 0 && this?.gameMap?.name) {
+            this.uiManager.showConnectionLostModal(this.gameMap.name);
+        }
+    }
+
+    /**
      * Got session details for a new game
      */
     onSessionDetails(message?:GameMessage) {
@@ -72,6 +87,8 @@ class GameManager {
             this.gameMap = new GameMap(name, seed, hash, this, entities);
             this.gameMap.setThingId(id);
             this.gameMap.refresh();
+            
+            this.uiManager.addMessageToLog(`Welcome to ${name}! Things are a bit of a mess, and there's garbage everywhere. Fill the garbage room with trash to save the day!`);
         }
     }
 
@@ -94,6 +111,9 @@ class GameManager {
             if (this.gameMap) {
                 this.gameMap.name = message.gameName;
                 this.gameMap.player?.setName(message.name);
+                this.serverId = message.serverId;
+
+                this.uiManager.addMessageToLog(`Welcome to ${message.gameName}! Things are a bit of a mess, and there's garbage everywhere. Fill the garbage room with trash to save the day!`);
             }
         }
     }
@@ -125,6 +145,8 @@ class GameManager {
                 entities: entityList,
                 creatorId: this.gameMap.player?.id ? this.gameMap.player.id : 0
             })
+        } else {
+            this.uiManager.addMessageToLog(`Welcome to Garbage Quest! Things are a bit of a mess, and there's garbage everywhere. Fill the garbage room with trash to save the day!`);
         }
     }
 

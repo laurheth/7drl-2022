@@ -88,6 +88,7 @@ export interface NameAssignment {
     requestType: "NameAssignment";
     name: string;
     gameName: string;
+    serverId: number;
 }
 
 /**

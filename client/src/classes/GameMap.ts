@@ -96,7 +96,6 @@ class GameMap {
                 const position = entity.position;
                 let newThing = null;
                 if (entity.kind === "you") {
-                    console.log("me?", entity);
                     newThing = new Player(position, this);
                     entity.kind = "player";
                     if (entity.art) {

@@ -35,10 +35,21 @@ class Game {
         this.clients = [];
     }
 
-    getEntityList() {
+    getEntityList(noPlayers=false) {
         const list = [];
         for (const id in this.entities) {
-            list.push(this.entities[id]);
+            if (noPlayers) {
+                if (this.entities[id].kind === "player") {
+                    continue;
+                }
+                list.push({
+                    id: this.entities[id].id,
+                    kind: this.entities[id].kind,
+                    position: this.entities[id].position
+                });
+            } else {
+                list.push(this.entities[id]);
+            }
         }
         return list;
     }
@@ -46,6 +57,78 @@ class Game {
 
 let gameId = 0;
 const games = {};
+const rememberGamesTime = 600000; // 10 minutes
+
+// Connect to redis and try to find cached games
+
+// Startup redis
+const redis = require("redis");
+const fs = require("fs");
+let REDIS_HOST;
+let useTls;
+if (process.env.REDIS_HOST) {
+    REDIS_HOST = process.env.REDIS_URL;
+    useTls = true;
+} else {
+    REDIS_HOST = "6379";
+    useTls = false;
+}
+
+const client = redis.createClient({
+  url: process.env.REDIS_URL,
+  socket: (useTls) ? {
+    tls: true,
+    rejectUnauthorized: false
+  } : undefined
+});
+
+// Function to add games to redis
+const addToRedis = (id, gameToAdd) => {
+    client.sAdd("games", id);
+    const entities = gameToAdd.getEntityList(true);
+    const key = `game${id}`;
+    client.hSet(key, "name", gameToAdd.name);
+    client.hSet(key, "seed", gameToAdd.seed);
+    client.hSet(key, "hash", gameToAdd.hash);
+    client.hSet(key, "entities", JSON.stringify(entities));
+    client.hSet(key, "timestamp", Date.now());
+}
+
+console.log("Connecting to redis...");
+let redisConnected = false;
+client.on('ready', async () => {
+    console.log('Connected to redis.');
+    redisConnected = true;
+    // The primary reason to use this is to preserve game state if the server crashes, so, go find some games
+    const redisGames = await client.sMembers("games");
+    if (redisGames && redisGames.length > 0) {
+        redisGames.forEach(gameId => {
+            client.hGetAll(`game${gameId}`).then(result => {
+                if (result.name && result.seed && result.hash && result.entities) {
+                    try {
+                        if (result.timestamp) {
+                            if (Date.now() - result.timestamp > rememberGamesTime) {
+                                console.log("Too old. Removing.");
+                                client.del(`game${gameId}`);
+                                client.sRem("games", gameId);
+                                return;
+                            }
+                        }
+                        const entities = JSON.parse(result.entities);
+                        const newGame = new Game(result.name, result.seed, result.hash, entities);
+                        games[gameId] = newGame;
+                    } catch (error) {
+                        console.log("Failed to retrieve game " + gameId);
+                        client.del(`game${gameId}`);
+                        client.sRem("games", gameId);
+                    }
+                }
+            })
+        });
+    }
+});
+
+client.connect();
 
 // New connections
 wss.on('connection', function connection(ws) {
@@ -57,28 +140,28 @@ wss.on('connection', function connection(ws) {
 
     ws.on('close', () => {
         console.log(`Client disconnected`);
-        // Do all of the cleanup. Remove player from games they're in, and remove empty games.
+        // Do all of the cleanup. Remove player from games they're in.
         if (myGameId >= 0) {
             const game = games[myGameId];
             const index = game.clients.indexOf(ws);
             if (index >= 0) {
                 game.clients.splice(index, 1);
                 if (game.clients.length <= 0) {
-                    delete games[myGameId];
-                } else {
-                    delete game.entities[myEntityId];
-                    game.clients.forEach(client => {
-                        client.send(JSON.stringify({
-                            requestType: "Updates",
-                            updates: [
-                                {
-                                    id: myEntityId,
-                                    message: "disconnected"
-                                }
-                            ]
-                        }))
-                    })
+                    // Add a timestamp. Games empty for too long will be purged later on.
+                    games[myGameId].emptySince = Date.now();
                 }
+                delete game.entities[myEntityId];
+                game.clients.forEach(client => {
+                    client.send(JSON.stringify({
+                        requestType: "Updates",
+                        updates: [
+                            {
+                                id: myEntityId,
+                                message: "disconnected"
+                            }
+                        ]
+                    }))
+                })
             }
         }
     });
@@ -118,6 +201,20 @@ wss.on('connection', function connection(ws) {
                     const gameList = [];
                     for (const key in games) {
                         const game = games[key];
+
+                        if (game.clients.length <= 0 && game.emptySince) {
+                            if ((Date.now() - game.emptySince > rememberGamesTime)) {
+                                delete games[key];
+                                if (redisConnected) {
+                                    client.sRem("games", key);
+                                    client.del(`game${key}`);
+                                }
+                                continue;
+                            } else {
+                                game.emptySince += 60000; // give the viewer a minute to figure shit out
+                            }
+                        }
+
                         gameList.push({
                             name: game.name,
                             id: key,
@@ -190,8 +287,12 @@ wss.on('connection', function connection(ws) {
                     ws.send(JSON.stringify({
                         requestType: "NameAssignment",
                         name: getRandomName(),
-                        gameName: gameName
+                        gameName: gameName,
+                        serverId: myGameId
                     }));
+                    if (redisConnected) {
+                        addToRedis(myGameId, newGame);
+                    }
                 } else {
                     console.log("Error, attempted new session while missing details. " + messageString);
                 }
@@ -208,6 +309,7 @@ wss.on('connection', function connection(ws) {
                     });
                     // Update our local copy as well
                     const updates = message.updates;
+                    let updateRedis = false;
                     updates.forEach(update => {
                         if (Number.isFinite(update.id)) {
                             const entity = game.entities[update.id];
@@ -221,9 +323,15 @@ wss.on('connection', function connection(ws) {
                                 if (update.position) {
                                     entity.position = update.position;
                                 }
+                                if (entity.kind !== "player") {
+                                    updateRedis = true;
+                                }
                             }
                         }
                     });
+                    if (redisConnected && updateRedis) {
+                        addToRedis(myGameId, game);
+                    }
                 }
                 break;
         }

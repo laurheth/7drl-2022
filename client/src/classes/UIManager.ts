@@ -347,6 +347,21 @@ class UIManager {
     }
 
     /**
+     * Lost connection :( Let the player know and offer to refresh
+     */
+    showConnectionLostModal(gameName:string) {
+        const header = document.createElement("h2");
+        header.innerText = "Connection lost";
+        const content = document.createElement("p");
+        content.innerText = `You lost connection. Don't worry, unless everything is on fire ${gameName} should be cached! You can refresh and try to rejoin.`
+        this.buildModal({
+            elements: [header, content],
+            buttons: ["Refresh"],
+            buttonActions: [()=>location.reload()]
+        })
+    }
+
+    /**
      * Show the list of available games
      */
     showGameList(games:GameSummary[]) {
@@ -356,9 +371,10 @@ class UIManager {
         if (games.length > 0) {
             header.innerText = "Join a game!";
             games.forEach(game=>{
-                if (game && game.name && game.players && game.id) {
+                if (game && game.name && game.players !== undefined && game.players >= 0 && game.id) {
                     buttons.push(`${game.name} (${game.players} players)`);
                     buttonActions.push(() => {
+                        this.game.serverId = game.id;
                         this.game.net.broadcast({
                             requestType:"Request",
                             details:"join",

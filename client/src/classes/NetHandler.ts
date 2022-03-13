@@ -43,7 +43,12 @@ class NetHandler {
                 me.runCallbacks("close");
                 ws.removeEventListener("close", close);
                 me.ws = null;
-            })
+            });
+            ws.addEventListener("error", function error() {
+                me.runCallbacks("close");
+                ws.removeEventListener("error", error);
+                me.ws = null;
+            });
         });
     }
 
@@ -57,7 +62,6 @@ class NetHandler {
      */
     onMessage(message:MessageEvent) {
         const data:GameMessage = JSON.parse(message.data);
-        console.log(data);
         this.runCallbacks(data.requestType, data);
     }
 
