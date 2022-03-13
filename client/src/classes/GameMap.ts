@@ -68,6 +68,8 @@ class GameMap {
      */
     winTiles:Tile[];
 
+    gameHasBeenWon = false;
+
     constructor(name:string, seed:number, hash:number, game:GameManager, entities:EntityDetails[]|null = null) {
         this.cameraPosition = [0,0,0];
 
@@ -197,6 +199,23 @@ class GameMap {
             }
         });
         return hash;
+    }
+
+    /**
+     * Check if the game has been won!
+     */
+    haveWon():boolean {
+        return this.winTiles.every(tile=>tile.garbage);
+    }
+
+    /**
+     *  Perform the check for if we have won, and then do all of the related logic
+     */
+    checkForWin():void {
+        if (!this.gameHasBeenWon && this.haveWon()) {
+            this.gameHasBeenWon = true;
+            this.game.uiManager.showWinModal();
+        }
     }
 
     // All the map generating methods below this point...

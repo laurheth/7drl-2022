@@ -83,13 +83,13 @@ body {
     border-radius: 5px;
     display: inline;
     text-align: center;
-    transition: border 0.2s;
+    transition: border 0.2s, filter 0.2s;
     filter: drop-shadow(0 0 0 black);
     width: 100%;
 }
 
 .controls button:hover,
-.constrols button:focus,
+.controls button:focus,
 .controls select:hover,
 .controls select:focus
 {
@@ -124,6 +124,69 @@ body {
 
 .log ol li {
     margin: 0.5rem 0;
+}
+
+.log ol li.notice {
+    color: yellow;
+    font-weight: bold;
+}
+
+.modalLayer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal {
+    width: 80%;
+    max-width: 400px;
+    background: black;
+    border: 4px solid brown;
+    border-radius: 10px;
+    text-align: center;
+    padding: 2rem;
+}
+
+.modalLayer.hidden {
+    display: none;
+}
+
+.modal h2 {
+    margin: 0;
+}
+
+.modal p {
+    margin: 2rem 0;
+}
+
+.modal .buttonBox {
+    /* TODO */
+}
+
+.modal button {
+    color: inherit;
+    background: inherit;
+    border: 3px solid goldenrod;
+    border-radius: 10px;
+    display: inline;
+    text-align: center;
+    transition: border 0.2s, filter 0.2s;
+    filter: drop-shadow(0 0 0 black);
+    padding: 0.5rem 1rem;
+}
+
+.modal button:hover,
+.modal button:focus
+{
+    border: 3px solid red;
+    filter: drop-shadow(0 0 6px red);
 }
 
 .pumpkin-tile {

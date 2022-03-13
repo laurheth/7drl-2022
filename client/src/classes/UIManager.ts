@@ -62,8 +62,24 @@ class UIManager {
 
     messageLogLength:number = 50;
 
+    /**
+     * The modal layer
+     */
+    modalLayer:HTMLDivElement;
+
+     /**
+      * The actual modal
+      */
+    modal:HTMLDivElement;
+
+    /**
+     * Quick chat phrases
+     */
     quickChatsPhrases:{[key:string]:string};
 
+    /**
+     * Game manager
+     */
     game:GameManager;
 
     /**
@@ -76,6 +92,8 @@ class UIManager {
         this.quickChatForm = document.getElementById("chatForm") as HTMLFormElement;
         this.messageLog = document.getElementById("log") as HTMLOListElement; 
         this.quickChatSelector = document.getElementById("quickChatSelect") as HTMLSelectElement;
+        this.modalLayer = document.getElementById("modalLayer") as HTMLDivElement;
+        this.modal = document.getElementById("modal") as HTMLDivElement;
         // Add in the quickchat options
         this.quickChatsPhrases = {};
         // From util/quickChats
@@ -251,6 +269,70 @@ class UIManager {
         const newMessageElement = document.createElement("li");
         newMessageElement.innerText = message;
         this.messageLog.prepend(newMessageElement);
+    }
+
+    /**
+     * The game has been won! Show the modal about it.
+     */
+    showWinModal() {
+        const elements:HTMLElement[] = [];
+        const header = document.createElement("h2");
+        header.innerText = "Great job!";
+        const content = document.createElement("p");
+        content.innerText = "The garbage room is full! Of course, the onslaught of garbage never ends, but for today, it is time to rest. Thank you for playing!";
+        this.buildModal({
+            elements: [header, content],
+            buttons: undefined,
+            buttonActions: undefined,
+        });
+    }
+
+    /**
+     * Build and show a modal!
+     */
+    buildModal(params:{elements:HTMLElement[],buttons?:string[],buttonActions?:(()=>void)[]}) {
+        let { elements, buttons, buttonActions } = params;
+        this.modal.innerHTML = "";
+        
+        const buttonBox = document.createElement('div');
+        buttonBox.classList.add("buttonBox");
+        
+        if (!buttons || !buttonActions || !(buttons.length > 0) || !(buttonActions.length > 0)) {
+            buttons = ["Close window"];
+            buttonActions = [()=>this.hideModal()];
+        }
+
+        for (let i=0; i<buttons.length; i++) {
+            const newButton = document.createElement('button');
+            newButton.innerText = buttons[i];
+            newButton.addEventListener("click", () => {
+                if (buttonActions && buttonActions[i]) {
+                    buttonActions[i]();
+                } else {
+                    this.hideModal();
+                }
+            })
+            buttonBox.appendChild(newButton);
+        }
+        elements.push(buttonBox);
+
+        elements.forEach(element => this.modal.appendChild(element));
+        setTimeout(()=>this.revealModal(),1000);
+    }
+    
+
+    /**
+     * Reveal the modal layer
+     */
+    revealModal() {
+        this.modalLayer.classList.remove("hidden");
+    }
+
+    /**
+     * Hide the modal layer
+     */
+    hideModal() {
+        this.modalLayer.classList.add("hidden");
     }
 }
 

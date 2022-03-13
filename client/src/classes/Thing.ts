@@ -16,6 +16,7 @@ class Thing {
     name:string|undefined;
     holding:Thing|null;
     hidden:boolean = false;
+    justDropped:boolean = false;
     trackFalling:number = -1;
 
     onDeath:(()=>void)|undefined;
@@ -130,6 +131,7 @@ class Thing {
             if (dropTile?.position) {
                 this.holding.move(dropTile.position);
                 this.holding.hidden = false;
+                this.holding.justDropped = true;
             }
             this.holding = null;
             return true;

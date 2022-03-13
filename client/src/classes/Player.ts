@@ -115,8 +115,9 @@ class Player extends Entity {
                 };
                 if (thing.hidden) {
                     update.message = "status:hidden";
-                } else {
+                } else if (this.justDropped) {
                     update.message = "status:show";
+                    this.justDropped = false;
                 }
                 updates.push(update);
             }
