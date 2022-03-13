@@ -5,7 +5,8 @@ import { ThingUpdateBundle, ThingUpdate, SessionDetails, GameRequest, GameMessag
 import Thing from "./Thing";
 import Entity from "./Entity";
 import UIManager from "./UIManager";
-import { randomStreet } from "../../../server/nameGeneration";;
+import { randomStreet } from "../../../server/nameGeneration";
+import TouchHandler from "./TouchHandler";
 
 /**
  * Bundles up the large scale game logic
@@ -37,8 +38,17 @@ class GameManager {
      */
     serverId:number = -1;
 
+    /**
+     * Touch screen handler
+     */
+    touchHandler:TouchHandler|undefined;
+
     constructor() {
         this.display = new GameDisplay(30, 30);
+
+        const touchDiv = document.getElementById("displayHolder") as HTMLElement;
+        this.touchHandler = new TouchHandler(touchDiv);
+
         this.net = new Net(this);
         this.net.addCallback("SessionDetails", this.onSessionDetails.bind(this));
         this.net.addCallback("GameList", this.onGameList.bind(this));
