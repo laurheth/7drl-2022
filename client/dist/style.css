@@ -8,6 +8,7 @@ html{line-height:1.15;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}bo
 
 html {
     font-size: 62.5%;
+    font-family: 'Catamaran', sans-serif;
 }
 
 body {
@@ -54,6 +55,41 @@ body {
     width: 100vmin;
     max-width: 920px;
     max-height: 920px;
+}
+
+.menus {
+    position: fixed;
+    top: 0;
+    right: 0;
+    text-align: right;
+    padding: 1rem;
+}
+
+.menus button {
+    border: none;
+    color: white;
+    background: transparent;
+    font-weight: bold;
+    font-size: 3rem;
+    filter: drop-shadow(0 0 1px white);
+    transition: 0.2s;
+}
+
+.menus button:hover,
+.menus button:focus {
+    color: red;
+    filter: drop-shadow(0 0 5px red);
+}
+
+a {
+    color: goldenrod;
+    filter: drop-shadow(0 0 0 black);
+    transition: 0.2s;
+}
+
+a:hover, a:focus {
+    color: red;
+    filter: drop-shadow(0 0 5px red);
 }
 
 .controls {
@@ -152,10 +188,16 @@ body {
     border-radius: 10px;
     text-align: center;
     padding: 2rem;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .modalLayer.hidden {
     display: none;
+}
+
+.modal.big {
+    max-width: 900px;
 }
 
 .modal h2 {
@@ -164,6 +206,14 @@ body {
 
 .modal p {
     margin: 2rem 0;
+}
+
+.modal .attribution {
+    margin: 0;
+}
+
+.modal span {
+    display: inline-block;
 }
 
 .modal .buttonBox {

@@ -134,6 +134,11 @@ client.on('ready', async () => {
     }
 });
 
+client.on("error", ()=>{
+    redisConnected = false;
+    console.log("Disconnected from redis...");
+});
+
 client.connect();
 
 // New connections
@@ -208,16 +213,20 @@ wss.on('connection', function connection(ws) {
                     for (const key in games) {
                         const game = games[key];
 
-                        if (game.clients.length <= 0 && game.emptySince) {
-                            if ((Date.now() - game.emptySince > rememberGamesTime)) {
-                                delete games[key];
-                                if (redisConnected) {
-                                    client.sRem("games", key);
-                                    client.del(`game${key}`);
+                        if (game.clients.length <= 0) {
+                            if (game.emptySince && Number.isFinite(game.emptySince)) {
+                                if ((Date.now() - game.emptySince > rememberGamesTime)) {
+                                    delete games[key];
+                                    if (redisConnected) {
+                                        client.sRem("games", key);
+                                        client.del(`game${key}`);
+                                    }
+                                    continue;
+                                } else if (!game.hasBeenWon) {
+                                    game.emptySince += 60000; // give the viewer a minute to figure shit out
                                 }
-                                continue;
-                            } else if (!game.hasBeenWon) {
-                                game.emptySince += 60000; // give the viewer a minute to figure shit out
+                            } else {
+                                game.emptySince = Date.now();
                             }
                         }
 
