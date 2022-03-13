@@ -28,6 +28,7 @@ class NetHandler {
     async init(callback:()=>void) {
         const url = new URL(window.location.href);
         const me = this;
+        // const HOST = "ws://garbage-quest.herokuapp.com:80";
         const HOST = (url.hostname.includes("localhost") || url.hostname.includes("127.0.0.1")) ? "ws:localhost:3000" : "";
         const ws = new WebSocket(HOST);
         this.ws = ws;

@@ -129,7 +129,7 @@ wss.on('connection', function connection(ws) {
                         requestType: "GameList",
                         games: gameList
                     }));
-                } else if (message.details === "join" && Number.isFinite(message.id)) {
+                } else if (message.details === "join") {
                     // A new Player wants to join the game!
                     myGameId = message.id;
                     const name = getRandomName();//message.name ? message.name : "Mystery Friend";
