@@ -3,7 +3,7 @@
 // Some server setup
 const express = require('express');
 const { Server } = require('ws');
-const { getRandomName } = require('./nameGeneration');
+const { getRandomName, randomStreet } = require('./nameGeneration');
 
 const PORT = process.env.PORT || 3000;
 
@@ -83,12 +83,34 @@ wss.on('connection', function connection(ws) {
         }
     });
 
+    // I want to avoid spam if possible. Try to rate limit identical messages
+    const messageRateInMilliseconds = 1000;
+    const messageTimes = {};
+
     // Handle messages. We're mostly just a fancy relay. Minimize server-side work. Opens it up to cheating, but this is a casual game; it's fine for our purposes.
     ws.on('message', (data, isBinary) => {
         const messageString = isBinary ? data : data.toString();
 
-        const message = JSON.parse(messageString);
-        console.log(messageString);
+        // Don't re-send identical messages that are being sent too often.
+        const timestamp = Date.now();
+        for (let key in messageTimes) {
+            if (timestamp - messageTimes[key] > messageRateInMilliseconds) {
+                delete messageTimes[key];
+            }
+        }
+        const lastTime = messageTimes[messageString];
+        
+        if (lastTime) {
+            return;
+        }
+        messageTimes[messageString] = timestamp;
+
+        let message;
+        try {
+            message = JSON.parse(messageString);
+        } catch (error) {
+            console.log("Unable to parse message", e);
+        }
 
         switch(message.requestType) {
             case "Request":
@@ -107,7 +129,7 @@ wss.on('connection', function connection(ws) {
                         requestType: "GameList",
                         games: gameList
                     }));
-                } else if (message.details === "join") {
+                } else if (message.details === "join" && Number.isFinite(message.id)) {
                     // A new Player wants to join the game!
                     myGameId = message.id;
                     const name = getRandomName();//message.name ? message.name : "Mystery Friend";
@@ -207,8 +229,3 @@ wss.on('connection', function connection(ws) {
         }
     })
 });
-
-// Debug stuff.
-setInterval(()=>{
-    console.log(`Games status:\n${JSON.stringify(games)}\n\n\n`);
-}, 10000);

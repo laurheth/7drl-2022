@@ -25,7 +25,7 @@ const suffix = [
     "Couch"
 ]
 
-export function getRandomName() {
+exports.getRandomName = function getRandomName() {
     const prefixIndex = Math.floor(prefix.length * Math.random());
     const suffixIndex = Math.floor(suffix.length * Math.random());
     return prefix[prefixIndex] + " " + suffix[suffixIndex];
@@ -51,7 +51,7 @@ const streetTypes = [
     "boulevard",
 ]
 
-export function randomStreet() {
+exports.randomStreet = function randomStreet() {
     const streetIndex = Math.floor(streets.length * Math.random());
     const typeIndex = Math.floor(streetTypes.length * Math.random());
     return streets[streetIndex] + " " + streetTypes[typeIndex];
