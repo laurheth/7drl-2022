@@ -58,21 +58,25 @@ class Player extends Entity {
             case "ArrowRight":
             case "Right":
             case "d":
+                event.preventDefault();
                 doRefresh = this.step([1, 0, 0]);
                 break;
             case "ArrowLeft":
             case "Left":
             case "a":
+                event.preventDefault();
                 doRefresh = this.step([-1, 0, 0]);
                 break;
             case "ArrowUp":
             case "Up":
             case "w":
+                event.preventDefault();
                 doRefresh = this.step([0, -1, 0]);
                 break;
             case "ArrowDown":
             case "Down":
             case "s":
+                event.preventDefault();
                 doRefresh = this.step([0, 1, 0]);
                 break;
             case ">":

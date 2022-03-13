@@ -99,6 +99,7 @@ a:hover, a:focus {
     border-color: #933;
     border-style: solid;
     border-width: 0 2px 0 0;
+    overflow-y: auto;
 }
 
 .controls ul {
@@ -324,4 +325,70 @@ a:hover, a:focus {
     width: 1em;
     margin: 0 .05em 0 .1em;
     vertical-align: -0.1em;
+}
+
+@media(max-width:600px) {
+    .wrapper {
+        width: 100%;
+    }
+    body {
+        font-size: 1.6rem;
+    }
+    .controls {
+        grid-row: 1/2;
+    }
+    .log {
+        grid-column: 1/3;
+    }
+    .uiContainer {
+        grid-template-columns: 23rem auto;
+    }
+}
+
+@media(max-width:500px) {
+    .wrapper {
+        border: none;
+    }
+    h1 {
+        display: none;
+    }
+    h2 {
+        font-size: 1.8rem;
+    }
+    .uiContainer {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .controls {
+        padding: 0 0.5rem;
+        border-width: 2px 0;
+        flex: 1 1 40%;
+    }
+
+    .displayHolder {
+        flex-basis: 40%;
+    }
+
+    .log {
+        flex-basis: 20%;
+        flex-shrink: 1;
+        border: none;
+        min-height: 5rem;
+    }
+}
+
+@media (max-height:500px) {
+    h1 {
+        font-size: 2rem;
+    }
+    h2 {
+        font-size: 1.8rem;
+    }
+    body {
+        font-size: 1.6rem;
+    }
+    .uiContainer {
+        grid-template-rows: auto 10rem;
+    }
 }

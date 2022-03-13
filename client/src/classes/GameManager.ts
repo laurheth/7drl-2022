@@ -161,7 +161,7 @@ class GameManager {
             let addToLog = false;
             if (message.sender && this.gameMap) {
                 sender = this.gameMap.things[message.sender];
-                if (sender.tile && sender.tile.visible) {
+                if (sender && sender.tile && sender.tile.visible) {
                     addToLog = true;
                 }
             }
