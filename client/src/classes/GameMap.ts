@@ -90,6 +90,15 @@ class GameMap {
         this.mapData = {};
         this.winTiles = [];
         this.generateMap(entities === null);
+        
+        // Add in a hash check, to make sure we didn't fuck up
+        // Store the hash
+        this.hashValue = this.calculateHash();
+                
+        // Compare hashes to make sure we're actually on the same map.
+        if (hash && this.hashValue.toString() !== hash.toString()) {
+            console.log("The hashes don't match", this.hashValue, hash);
+        }
 
         if (entities) {
             entities.forEach(entity => {
@@ -108,6 +117,18 @@ class GameMap {
                     }
                 } else if (isGarbage(entity.kind)) {
                     newThing = makeSomeGarbage(position, this, entity.kind);
+                } else if (entity.id in this.things) {
+                    newThing = this.things[entity.id];
+                    const destinationTile:Tile|null = this.getTile(...entity.position);
+                    if (destinationTile) {
+                        if (destinationTile.entity && destinationTile.entity !== newThing && destinationTile.entity.kind !== "player") {
+                            destinationTile.removeThing(destinationTile.entity);
+                        }
+                        const newDestinationTile = newThing.findEmptySpot(entity.position);
+                        if (newDestinationTile) {
+                            newThing.move(newDestinationTile.position);
+                        }
+                    }
                 }
                 if (newThing) {
                     newThing.kind = entity.kind;
@@ -128,15 +149,6 @@ class GameMap {
                 const tile = availableTiles.splice(index, 1)[0];
                 const garbage = makeSomeGarbage(tile.position, this);
             }
-        }
-
-        // Add in a hash check, to make sure we didn't fuck up
-        // Store the hash
-        this.hashValue = this.calculateHash();
-        
-        // Compare hashes to make sure we're actually on the same map.
-        if (hash && this.hashValue !== hash) {
-            console.log("The hashes don't match", this.hashValue, hash);
         }
     }
 

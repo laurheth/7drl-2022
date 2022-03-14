@@ -152,7 +152,7 @@ class Player extends Entity {
      * Move. Also, update the camera when we do.
      */
     move(newPosition:[number, number, number]):boolean {
-        const result = super.move(newPosition);
+        const result = super.move(newPosition, true);
         this.position.forEach((x,i) => this.map.cameraPosition[i] = x);
         this.uiManager.updateControls(this, this.map);
         return result;
@@ -162,12 +162,11 @@ class Player extends Entity {
      * Add some extra tracking to interactions
      */
     interact(otherEntity:Entity):(()=>void)|null {
-        this.otherThingsToUpdate.push(otherEntity);
         this.bonusMessages.push({
             id: this.id,
             position: otherEntity.position
         });
-        return super.interact(otherEntity);
+        return super.interact(otherEntity, true);
     }
 
     dropThing(position?:[number, number, number]|null): boolean {

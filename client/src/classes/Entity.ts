@@ -38,9 +38,8 @@ class Entity extends Thing {
     /**
      * Expand upon move.
      */
-    move(newPosition:[number, number, number]):boolean {
+    move(newPosition:[number, number, number], tellServerAboutIt:boolean = false):boolean {
         const newTile:Tile|null = this.map.getTile(...newPosition);
-        
         // Handle doors
         if (newTile && newTile.art === '+') {
             newTile.art = '-';
@@ -69,7 +68,7 @@ class Entity extends Thing {
 
         let postMove:(()=>void)|null = null;
         if (newTile && newTile.entity && newTile.entity !== this) {
-            postMove = this.interact(newTile.entity);
+            postMove = this.interact(newTile.entity, tellServerAboutIt);
         }
         
         const result = super.move(newPosition);
@@ -78,13 +77,17 @@ class Entity extends Thing {
             postMove();
         }
 
+        if (result && tellServerAboutIt && this.map.player) {
+            this.map.player.otherThingsToUpdate.push(this);
+        }
+
         return result;
     }
 
     /**
      * Interact with someone else.
      */
-    interact(otherEntity:Entity):(()=>void)|null {
+    interact(otherEntity:Entity, tellServerAboutIt:boolean = false):(()=>void)|null {
         // First try to push
         if (otherEntity.pushable) {
             const getPushedTo:[number, number, number] = [
@@ -92,7 +95,7 @@ class Entity extends Thing {
                 2 * otherEntity.position[1] - this.position[1],
                 otherEntity.position[2]
             ];
-            if (otherEntity.move(getPushedTo)) {
+            if (otherEntity.move(getPushedTo, tellServerAboutIt)) {
                 if (otherEntity.tile && otherEntity.tile.visible) {
                     this.map.game.uiManager.addMessageToLog(`${otherEntity.getName()} is pushed!`);
                 }
@@ -114,7 +117,7 @@ class Entity extends Thing {
                 }
 
                 tile.removeThing(otherEntity);
-                return ()=>otherEntity.move(myTile.position);
+                return ()=>otherEntity.move(myTile.position, tellServerAboutIt);
             }
         }
         if (otherEntity.onInteract) {
