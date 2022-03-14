@@ -59,6 +59,11 @@ class Tile {
      */
     position:[number, number, number]
 
+    /**
+     * Is this tile a garbage chute?
+     */
+    isChute:boolean = false;
+
     constructor(position:[number, number, number], art:string, classList:string[], passable:boolean, replaceable = true, hideBaseArt:boolean = false) {
         this.art = art;
         this.lastSeen = " ";

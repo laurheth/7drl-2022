@@ -158,11 +158,12 @@ class UIManager {
                 const chutePosition = player.adjacentChuteExists();
                 // We found a chute to shove this thing down
                 if (chutePosition) {
+                    const holeType = (chutePosition.isChute) ? "garbage chute" : "elevator shaft";
                     actions.push({
-                        description: `Put ${player.holding.getName()} down the chute!`,
+                        description: `Throw ${player.holding.getName()} down the ${holeType}!`,
                         action: ()=>{
                             if (chutePosition) {
-                                player.dropThing(chutePosition);
+                                player.dropThing(chutePosition.position);
                             }
                             player.updateAndRefresh();
                         },

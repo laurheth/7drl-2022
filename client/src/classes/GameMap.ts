@@ -340,7 +340,7 @@ class GameMap {
         if (z > 0) {
             design = [
                 '    YYYY    ',
-                '   YYXXYY   ',
+                '   YYCCYY   ',
                 '   Y....Y   ',
                 '   Y....Y   ',
                 '   Y....Y   ',
@@ -388,13 +388,16 @@ class GameMap {
                 let hideBase:boolean = false;
                 let classList:string[] = [];
                 let addToWinTiles = false;
+                let isChute = false;
                 if (char === ' ') {
                     return;
                 }
-                if (char === 'X') {
+                if (char === 'C') {
+                    isChute = true;
                     char = ' ';
-                }
-                if (char === 'Y') {
+                } else if (char === 'X') {
+                    char = ' ';
+                } else if (char === 'Y') {
                     char = '#';
                     classList.push("yellow");
                 } else if (char === 'y') {
@@ -441,6 +444,7 @@ class GameMap {
                 if (addToWinTiles) {
                     this.winTiles.push(newTile);
                 }
+                newTile.isChute = isChute;
             });
         });
     }

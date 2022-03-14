@@ -94,7 +94,7 @@ class Player extends Entity {
                 break;
             case "p":
                 const chutePosition = this.adjacentChuteExists();
-                doRefresh = this.dropThing(chutePosition);
+                doRefresh = this.dropThing(chutePosition?.position);
                 break;
             default:
                 break;
@@ -196,14 +196,15 @@ class Player extends Entity {
         }
     }
 
-    adjacentChuteExists():[number, number, number]|null {
+    adjacentChuteExists():{position:[number, number, number],isChute:boolean}|null {
         if (!this.map || !this.tile) {
             return null;
         }
         const position = this.tile.position;
+        let isChute = false;
         let chutePosition:[number, number, number]|null = null;
-        for (let dx=-1; dx<2; dx++) {
-            for (let dy=-1; dy<2; dy++) {
+        for (let dx of [0, -1, 1]) {
+            for (let dy of [0, -1, 1]) {
                 const otherTile = this.map.getTile(
                     position[0] + dx,
                     position[1] + dy,
@@ -211,10 +212,15 @@ class Player extends Entity {
                 );
                 if (otherTile && otherTile.art === ' ') {
                     chutePosition = otherTile.position;
+                    isChute = otherTile.isChute;
+                    return {
+                        position: chutePosition,
+                        isChute: isChute
+                    }
                 }
             }
         }
-        return chutePosition;
+        return null;
     }
 
     /**
