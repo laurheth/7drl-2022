@@ -126,6 +126,9 @@ class GameMap {
                         }
                         const newDestinationTile = newThing.findEmptySpot(entity.position);
                         if (newDestinationTile) {
+                            if (newDestinationTile.art === "+") {
+                                newThing.move(newDestinationTile.position);
+                            }
                             newThing.move(newDestinationTile.position);
                         }
                     }
